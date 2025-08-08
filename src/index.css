@@ -52,14 +52,39 @@
     border-color: hsl(var(--border));
   }
   
+  html {
+    scroll-behavior: smooth;
+  }
+  
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: system-ui, -apple-system, sans-serif;
   }
+  
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 0;
+  }
+  
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  #features {
+    scroll-margin-top: 80px;
+  }
 }
 
 @layer components {
+  button, [type="button"], [type="submit"], [role="button"] {
+    cursor: pointer;
+    transition: filter 0.15s, box-shadow 0.15s;
+  }
+  button:hover, [type="button"]:hover, [type="submit"]:hover, [role="button"]:hover {
+    filter: brightness(0.97) saturate(1.1);
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+  }
   .container {
     width: 100%;
     max-width: 80rem;

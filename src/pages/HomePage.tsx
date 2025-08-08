@@ -16,21 +16,21 @@ export function HomePage() {
       {/* Header avec design moderne */}
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:outline-none rounded-lg transition-all duration-200">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-sm">
               PJ
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
               Paris Janitor
             </h1>
-          </div>
+          </Link>
           <nav className="flex items-center space-x-4">
             {user ? (
-              <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+              <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200">
                 <Link to={getDashboardPath()}>Dashboard</Link>
               </Button>
             ) : (
-              <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+              <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200">
                 <Link to="/auth">Se connecter</Link>
               </Button>
             )}
@@ -52,18 +52,31 @@ export function HomePage() {
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 simplifiée
               </span>{' '}
-              à Paris
+              en France
             </h1>
             <p className="mx-auto mb-10 max-w-2xl text-lg text-gray-600 sm:text-xl">
               Connectez propriétaires, voyageurs et prestataires pour une expérience locative 
-              optimale dans la capitale française
+              optimale partout en France
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8">
+              <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:outline-none transition-all duration-200">
                 <Link to="/auth">Commencer gratuitement</Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-gray-300 hover:bg-gray-50 px-8">
-                <Link to="#features">En savoir plus</Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-gray-300 hover:bg-gray-50 px-8 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:outline-none transition-all duration-200"
+                onClick={() => {
+                  const element = document.getElementById('features');
+                  if (element) {
+                    element.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }
+                }}
+              >
+                En savoir plus
               </Button>
             </div>
           </div>
@@ -85,8 +98,8 @@ export function HomePage() {
 
           <div className="grid gap-8 md:grid-cols-3">
             {/* Propriétaires Card */}
-            <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-1">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity" />
               <CardHeader className="relative pb-4">
                 <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,8 +134,8 @@ export function HomePage() {
             </Card>
 
             {/* Voyageurs Card */}
-            <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity" />
               <CardHeader className="relative pb-4">
                 <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,7 +151,7 @@ export function HomePage() {
                 <ul className="space-y-2.5">
                   <li className="flex items-start space-x-3">
                     <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 leading-relaxed">Recherche intelligente par quartier</span>
+                    <span className="text-sm text-gray-700 leading-relaxed">Recherche intelligente par région</span>
                   </li>
                   <li className="flex items-start space-x-3">
                     <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
@@ -157,8 +170,8 @@ export function HomePage() {
             </Card>
 
             {/* Prestataires Card */}
-            <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-purple-500 focus-within:ring-offset-2">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity" />
               <CardHeader className="relative pb-4">
                 <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 text-white">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -187,7 +200,7 @@ export function HomePage() {
                   </li>
                   <li className="flex items-start space-x-3">
                     <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-purple-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 leading-relaxed">Zone géographique optimisée</span>
+                    <span className="text-sm text-gray-700 leading-relaxed">Couverture géographique nationale</span>
                   </li>
                 </ul>
               </CardContent>
@@ -201,7 +214,7 @@ export function HomePage() {
         <div className="container px-4">
           <div className="mx-auto max-w-3xl text-center mb-12">
             <h2 className="text-2xl font-bold text-white mb-4">Pourquoi choisir Paris Janitor ?</h2>
-            <p className="text-gray-300">Une plateforme pensée pour simplifier la gestion locative parisienne</p>
+            <p className="text-gray-300">Une plateforme pensée pour simplifier la gestion locative française</p>
           </div>
           <div className="grid gap-8 md:grid-cols-4 text-center">
             <div className="space-y-2">

@@ -19,19 +19,12 @@ const queryClient = new QueryClient({
 })
 
 function App() {
-  const { user, loading, initialize } = useAuthStore()
+  const { user, initialize } = useAuthStore()
 
   useEffect(() => {
     initialize()
   }, [initialize])
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    )
-  }
 
   return (
     <QueryClientProvider client={queryClient}>
