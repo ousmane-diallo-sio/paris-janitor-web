@@ -1,16 +1,14 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 import type { Session } from '@supabase/supabase-js'
-import type { Database } from '@/types/supabase'
-
-type UserProfile = Database['public']['Tables']['users']['Row']
+import type { Profile } from '@/types/database'
 
 interface AuthState {
-  user: UserProfile | null
+  user: Profile | null
   session: Session | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, userData: Partial<UserProfile>) => Promise<void>
+  signUp: (email: string, password: string, userData: Partial<Profile>) => Promise<void>
   signOut: () => Promise<void>
   initialize: () => void
 }
@@ -36,25 +34,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  signUp: async (email: string, password: string, userData: Partial<UserProfile>) => {
+  signUp: async (email: string, password: string, userData: Partial<Profile>) => {
     set({ loading: true })
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: userData.full_name,
+            phone: userData.phone,
+            role: userData.role || 'traveler'
+          }
+        }
       })
       if (error) throw error
-
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            ...userData,
-          })
-        if (profileError) throw profileError
-      }
     } catch (error) {
       console.error('Sign up error:', error)
       throw error
@@ -78,7 +72,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session, loading: false })
       if (session?.user) {
         supabase
-          .from('users')
+          .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single()
@@ -92,7 +86,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session })
       if (session?.user) {
         const { data } = await supabase
-          .from('users')
+          .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single()

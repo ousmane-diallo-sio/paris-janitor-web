@@ -8,15 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { envConfig } from '@/lib/env-config'
+import { devUtils } from '@/lib/dev-utils'
 
 function getErrorMessage(error: unknown): string {
   if (typeof error === 'string') return error
   const message = error instanceof Error ? error.message : ''
   const errorString = String(error).toLowerCase()
-  if (message.includes('Invalid login credentials') || 
-      message.includes('Invalid email or password') ||
-      errorString.includes('invalid_grant') ||
-      errorString.includes('401')) {
+  if (message.includes('Invalid login credentials') ||
+    message.includes('Invalid email or password') ||
+    errorString.includes('invalid_grant') ||
+    errorString.includes('401')) {
     return '🔐 Email ou mot de passe incorrect'
   }
   if (message.includes('Email not confirmed')) {
@@ -40,22 +42,22 @@ function getErrorMessage(error: unknown): string {
   if (message.includes('Too many requests')) {
     return '🚦 Trop de tentatives de connexion. Veuillez patienter'
   }
-  if (message.includes('Failed to fetch') || 
-      message.includes('NetworkError') || 
-      message.includes('fetch') ||
-      message.includes('ERR_NETWORK') ||
-      message.includes('ERR_INTERNET_DISCONNECTED') ||
-      errorString.includes('network') ||
-      errorString.includes('connection') ||
-      !navigator.onLine) {
+  if (message.includes('Failed to fetch') ||
+    message.includes('NetworkError') ||
+    message.includes('fetch') ||
+    message.includes('ERR_NETWORK') ||
+    message.includes('ERR_INTERNET_DISCONNECTED') ||
+    errorString.includes('network') ||
+    errorString.includes('connection') ||
+    !navigator.onLine) {
     return '❌ Échec de connexion - Vérifiez votre connexion internet et réessayez'
   }
   if (message.includes('timeout') || message.includes('TIMEOUT')) {
     return '⏱️ Délai d\'attente dépassé - Le serveur met trop de temps à répondre'
   }
-  if (message.includes('ECONNREFUSED') || 
-      message.includes('Connection refused') ||
-      message.includes('ERR_CONNECTION_REFUSED')) {
+  if (message.includes('ECONNREFUSED') ||
+    message.includes('Connection refused') ||
+    message.includes('ERR_CONNECTION_REFUSED')) {
     return '🚫 Impossible de se connecter au serveur - Service temporairement indisponible'
   }
   if (message.includes('500') || message.includes('Internal Server Error')) {
@@ -70,6 +72,7 @@ function getErrorMessage(error: unknown): string {
 export function AuthPage() {
   const navigate = useNavigate()
   const { user, signIn, signUp, loading } = useAuthStore()
+
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -82,31 +85,24 @@ export function AuthPage() {
   const isDevelopment = import.meta.env.DEV
   const fillDevCredentials = useCallback(() => {
     if (isLogin) {
-      const testUsers = [
-        { email: 'admin@parisjanitor.com', password: 'admin123' },
-        { email: 'owner@test.com', password: 'owner123' },
-        { email: 'traveler@test.com', password: 'travel123' },
-        { email: 'service@test.com', password: 'service123' }
-      ]
-      const randomUser = testUsers[Math.floor(Date.now() / 1000) % testUsers.length]
-      setEmail(randomUser.email)
-      setPassword(randomUser.password)
+      setEmail(envConfig.dev.email)
+      setPassword(envConfig.dev.password)
     } else {
-      const sampleNames = ['Jean Dupont', 'Marie Martin', 'Pierre Durand', 'Sophie Bernard']
-      const randomName = sampleNames[Math.floor(Date.now() / 1000) % sampleNames.length]
       const timestamp = Date.now().toString().slice(-4)
-      setEmail(`test+${timestamp}@parisjanitor.com`)
-      setPassword('Password123!')
-      setFullName(randomName)
+      setEmail(envConfig.dev.email)
+      setPassword(envConfig.dev.password)
+      setFullName('Dev User')
       setPhone(`+3312345${timestamp}`)
       setRole('traveler')
     }
     setError('')
     setSuccessMessage('')
   }, [isLogin])
+
   if (user) {
     return <Navigate to={`/dashboard/${user.role?.replace('_', '-')}`} replace />
   }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -166,15 +162,14 @@ export function AuthPage() {
         </Button>
       </div>
       {isDevelopment && (
-        <div className="fixed top-2 left-2 z-50 flex space-x-2">
+        <div className="w-full fixed bottom-20 left-2 z-50 flex space-x-2">
           <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-2 py-1 rounded-md text-xs font-medium">
             🔧 DEV MODE
           </div>
-          <div className={`px-2 py-1 rounded-md text-xs font-medium ${
-            navigator.onLine 
-              ? 'bg-green-100 border border-green-300 text-green-800'
-              : 'bg-red-100 border border-red-300 text-red-800'
-          }`}>
+          <div className={`px-2 py-1 rounded-md text-xs font-medium ${navigator.onLine
+            ? 'bg-green-100 border border-green-300 text-green-800'
+            : 'bg-red-100 border border-red-300 text-red-800'
+            }`}>
             {navigator.onLine ? '🌐 En ligne' : '❌ Hors ligne'}
           </div>
           {error && (
@@ -182,6 +177,45 @@ export function AuthPage() {
               🚨 Error: {error.slice(0, 30)}...
             </div>
           )}
+          <div className='flex-1'></div>
+          <div className="flex space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={fillDevCredentials}
+              className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100 shadow-sm"
+            >
+              🚀 Dev Fill
+            </Button>
+            {isLogin && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await devUtils.deleteDevUser()
+                    setSuccessMessage('Dev user deleted successfully')
+                    setError('')
+                  } catch (error) {
+                    setError(getErrorMessage(error))
+                    setSuccessMessage('')
+                  }
+                }}
+                className="text-xs bg-red-50 border-red-200 text-red-800 hover:bg-red-100 shadow-sm"
+              >
+                🗑️ Delete Dev User
+              </Button>
+            )}
+          </div>
+          <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-10">
+            <div className="bg-gray-800 text-white text-xs rounded py-2 px-3 whitespace-nowrap">
+              <div>{isLogin ? 'Fill with dev credentials or delete dev user' : 'Fill with sample registration data'}</div>
+              <div className="text-gray-400 mt-1">⌘⇧F (Ctrl+Shift+F)</div>
+              <div className="text-gray-400 mt-1">🌐 Test server connection</div>
+            </div>
+          </div>
         </div>
       )}
       <div className="max-w-md w-full space-y-8">
@@ -200,34 +234,12 @@ export function AuthPage() {
               <div>
                 <CardTitle>{isLogin ? 'Se connecter' : 'S\'inscrire'}</CardTitle>
                 <CardDescription>
-                  {isLogin 
+                  {isLogin
                     ? 'Entrez vos identifiants pour accéder à votre compte'
                     : 'Remplissez les informations pour créer votre compte'
                   }
                 </CardDescription>
               </div>
-              {isDevelopment && (
-                <div className="relative group">
-                  <div className="flex space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={fillDevCredentials}
-                      className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100 shadow-sm"
-                    >
-                      🚀 Dev Fill
-                    </Button>
-                  </div>
-                  <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-10">
-                    <div className="bg-gray-800 text-white text-xs rounded py-2 px-3 whitespace-nowrap">
-                      <div>{isLogin ? 'Fill with test credentials' : 'Fill with sample registration data'}</div>
-                      <div className="text-gray-400 mt-1">⌘⇧F (Ctrl+Shift+F)</div>
-                      <div className="text-gray-400 mt-1">🌐 Test server connection</div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -245,9 +257,8 @@ export function AuthPage() {
                   }}
                   placeholder="Entrez votre email"
                   autoComplete="off"
-                  className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${
-                    error && !email.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                  }`}
+                  className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${error && !email.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                    }`}
                   required
                 />
               </div>
@@ -265,9 +276,8 @@ export function AuthPage() {
                   }}
                   placeholder="Entrez votre mot de passe"
                   autoComplete="new-password"
-                  className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${
-                    error && !password.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                  }`}
+                  className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${error && !password.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                    }`}
                   required
                 />
               </div>
@@ -285,9 +295,8 @@ export function AuthPage() {
                         setFullName(e.target.value)
                         if (error && successMessage) setSuccessMessage('')
                       }}
-                      className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${
-                        error && !fullName.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                      }`}
+                      className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${error && !fullName.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                        }`}
                       required
                     />
                   </div>
@@ -309,9 +318,9 @@ export function AuthPage() {
                   <div className="space-y-2">
                     <Label htmlFor="role">Type de compte</Label>
                     <Select
-                      value={role} 
+                      value={role}
                       onValueChange={(value: 'property_owner' | 'traveler' | 'service_provider') => setRole(value)}
-                      >
+                    >
                       <SelectTrigger className="focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200">
                         <SelectValue />
                       </SelectTrigger>
@@ -335,11 +344,10 @@ export function AuthPage() {
               )}
 
               {error && (
-                <div className={`border rounded-lg p-4 flex items-start space-x-3 ${
-                  error.includes('Échec de connexion') || error.includes('Impossible de se connecter') || error.includes('Délai d\'attente')
-                    ? 'bg-red-100 border-red-300 shadow-lg' // More prominent for connection errors
-                    : 'bg-red-50 border-red-200'
-                }`}>
+                <div className={`border rounded-lg p-4 flex items-start space-x-3 ${error.includes('Échec de connexion') || error.includes('Impossible de se connecter') || error.includes('Délai d\'attente')
+                  ? 'bg-red-100 border-red-300 shadow-lg' // More prominent for connection errors
+                  : 'bg-red-50 border-red-200'
+                  }`}>
                   <div className="flex-shrink-0">
                     {error.includes('Échec de connexion') || error.includes('Impossible de se connecter') ? (
                       <div className="w-5 h-5 text-red-600 animate-pulse">🔌</div>
@@ -366,9 +374,9 @@ export function AuthPage() {
                             setError('')
                             const form = document.querySelector('form')
                             if (form) {
-                              const submitEvent = new Event('submit', { 
-                                bubbles: true, 
-                                cancelable: true 
+                              const submitEvent = new Event('submit', {
+                                bubbles: true,
+                                cancelable: true
                               })
                               form.dispatchEvent(submitEvent)
                             }
@@ -383,9 +391,9 @@ export function AuthPage() {
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-all duration-200" 
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-all duration-200"
                 loading={loading || isSubmitting}
                 disabled={loading || isSubmitting}
               >
@@ -408,7 +416,7 @@ export function AuthPage() {
                   setRole('traveler')
                 }}
               >
-                {isLogin 
+                {isLogin
                   ? 'Pas de compte ? S\'inscrire'
                   : 'Déjà un compte ? Se connecter'
                 }
