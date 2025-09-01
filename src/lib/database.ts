@@ -43,6 +43,15 @@ export const db = {
       
       if (error) throw error
       return data as Profile
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', id)
+      
+      if (error) throw error
     }
   },
 
@@ -82,6 +91,27 @@ export const db = {
       
       if (error) throw error
       return data as Property
+    },
+
+    async update(id: string, updates: TablesUpdate<'properties'>) {
+      const { data, error } = await supabase
+        .from('properties')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data as Property
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id)
+      
+      if (error) throw error
     }
   },
 

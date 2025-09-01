@@ -1,9 +1,29 @@
+import { Navigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function ServiceProviderDashboard() {
-  const { user, signOut } = useAuthStore()
+  const { user, signOut, loading } = useAuthStore()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!loading && !user) {
+    return <Navigate to="/auth" replace />
+  }
+
+  if (!loading && user && user.role !== 'service_provider') {
+    return <Navigate to={`/dashboard/${user.role?.replace('_', '-')}`} replace />
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -15,6 +35,11 @@ export function ServiceProviderDashboard() {
               <span className="text-sm text-gray-700">
                 Bonjour, {user?.full_name || user?.email}
               </span>
+              <Link to="/profile">
+                <Button variant="outline" size="sm">
+                  Mon profil
+                </Button>
+              </Link>
               <Button variant="outline" onClick={signOut}>
                 Se déconnecter
               </Button>

@@ -9,10 +9,11 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
   loading?: boolean
+  contentClassName?: string
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, loading, children, disabled, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading, children, disabled, contentClassName, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     
     return (
@@ -44,8 +45,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 d="M15 8a7 7 0 01-7 7V13a5 5 0 005-5h2z"
               />
             </svg>
-          ) : <span>{children}</span>}
-          
+          ) : <span className={contentClassName}>{children}</span>}
+
         </span>
       </Comp>
     )

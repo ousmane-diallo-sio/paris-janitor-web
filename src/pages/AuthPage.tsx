@@ -93,7 +93,7 @@ export function AuthPage() {
       setPassword(envConfig.dev.password)
       setFullName('Dev User')
       setPhone(`+3312345${timestamp}`)
-      setRole('traveler')
+      setRole('property_owner')
     }
     setError('')
     setSuccessMessage('')
@@ -188,26 +188,6 @@ export function AuthPage() {
             >
               🚀 Dev Fill
             </Button>
-            {isLogin && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    await devUtils.deleteDevUser()
-                    setSuccessMessage('Dev user deleted successfully')
-                    setError('')
-                  } catch (error) {
-                    setError(getErrorMessage(error))
-                    setSuccessMessage('')
-                  }
-                }}
-                className="text-xs bg-red-50 border-red-200 text-red-800 hover:bg-red-100 shadow-sm"
-              >
-                🗑️ Delete Dev User
-              </Button>
-            )}
           </div>
           <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-10">
             <div className="bg-gray-800 text-white text-xs rounded py-2 px-3 whitespace-nowrap">
@@ -252,7 +232,6 @@ export function AuthPage() {
                   value={email}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setEmail(e.target.value)
-                    // Don't clear error on typing - let user see the error message
                     if (successMessage) setSuccessMessage('')
                   }}
                   placeholder="Entrez votre email"
@@ -271,7 +250,6 @@ export function AuthPage() {
                   value={password}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setPassword(e.target.value)
-                    // Don't clear error on typing - let user see the error message
                     if (successMessage) setSuccessMessage('')
                   }}
                   placeholder="Entrez votre mot de passe"

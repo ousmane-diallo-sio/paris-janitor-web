@@ -8,6 +8,8 @@ import { TravelerDashboard } from '@/pages/TravelerDashboard'
 import { ServiceProviderDashboard } from '@/pages/ServiceProviderDashboard'
 import { AuthPage } from '@/pages/AuthPage'
 import { HomePage } from '@/pages/HomePage'
+import { ProfilePage } from '@/pages/ProfilePage'
+import { PropertySearchPage } from '@/pages/PropertySearchPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,12 +21,22 @@ const queryClient = new QueryClient({
 })
 
 function App() {
-  const { user, initialize } = useAuthStore()
+  const { user, initialize, loading } = useAuthStore()
 
   useEffect(() => {
     initialize()
   }, [initialize])
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -33,14 +45,13 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/search" element={<PropertySearchPage />} />
             
-            {user && (
-              <>
-                <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />
-                <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
-                <Route path="/dashboard/service-provider" element={<ServiceProviderDashboard />} />
-              </>
-            )}
+            {/* Protected routes - always rendered but with internal auth checks */}
+            <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />
+            <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
+            <Route path="/dashboard/service-provider" element={<ServiceProviderDashboard />} />
             
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

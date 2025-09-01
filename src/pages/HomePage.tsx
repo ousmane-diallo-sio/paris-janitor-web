@@ -1,10 +1,20 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState } from 'react'
 
 export function HomePage() {
   const { user } = useAuthStore()
+  const location = useLocation()
+  const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    if (location.state && location.state.message) {
+      setSuccessMessage(location.state.message)
+      setTimeout(() => setSuccessMessage(''), 5000)
+    }
+  }, [location.state])
 
   const getDashboardPath = () => {
     if (!user) return '/auth'
@@ -38,7 +48,14 @@ export function HomePage() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 px-4 py-3">
+          <div className="container mx-auto">
+            <p className="text-green-700 text-center">{successMessage}</p>
+          </div>
+        </div>
+      )}
+
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10" />
         <div className="container relative px-4 py-24 sm:py-32">
@@ -83,7 +100,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="py-24 sm:py-32">
         <div className="container px-4">
           <div className="mx-auto max-w-2xl text-center mb-16">
@@ -97,7 +113,6 @@ export function HomePage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {/* Propriétaires Card */}
             <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-1">
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity" />
               <CardHeader className="relative pb-4">
@@ -133,7 +148,6 @@ export function HomePage() {
               </CardContent>
             </Card>
 
-            {/* Voyageurs Card */}
             <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity" />
               <CardHeader className="relative pb-4">
@@ -169,7 +183,6 @@ export function HomePage() {
               </CardContent>
             </Card>
 
-            {/* Prestataires Card */}
             <Card className="group relative overflow-hidden border-0 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-purple-500 focus-within:ring-offset-2">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity" />
               <CardHeader className="relative pb-4">
@@ -209,7 +222,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Value Proposition Section */}
       <section className="bg-gradient-to-r from-gray-900 to-gray-800 py-20">
         <div className="container px-4">
           <div className="mx-auto max-w-3xl text-center mb-12">
@@ -237,7 +249,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-white border-t py-12">
         <div className="container px-4">
           <div className="flex flex-col items-center justify-between md:flex-row">
