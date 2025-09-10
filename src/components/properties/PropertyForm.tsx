@@ -63,7 +63,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
     register,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors, isDirty }
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
     defaultValues: getDefaultValues()
@@ -74,6 +74,20 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
     const defaultValues = getDefaultValues()
     reset(defaultValues)
   }, [getDefaultValues, reset])
+
+  // Handle browser back button
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // Prevent accidental navigation if form has unsaved changes
+      if (isDirty) {
+        event.preventDefault()
+        event.returnValue = ''
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isDirty])
 
   const onSubmit = async (data: PropertyFormData) => {
     if (!user) return

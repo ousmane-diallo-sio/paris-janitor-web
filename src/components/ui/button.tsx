@@ -45,7 +45,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 d="M15 8a7 7 0 01-7 7V13a5 5 0 005-5h2z"
               />
             </svg>
-          ) : <span className={contentClassName}>{children}</span>}
+          ) : <span className={`flex flex-row items-center ${contentClassName}`}>{children}</span>}
 
         </span>
       </Comp>

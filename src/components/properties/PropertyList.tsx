@@ -18,10 +18,11 @@ import type { Property } from '@/types/database'
 interface PropertyListProps {
   properties: Property[]
   onEdit?: (property: Property) => void
+  onManageCalendar?: (property: Property) => void
   onRefresh: () => void
 }
 
-export function PropertyList({ properties, onEdit, onRefresh }: PropertyListProps) {
+export function PropertyList({ properties, onEdit, onManageCalendar, onRefresh }: PropertyListProps) {
   const [deletingProperty, setDeletingProperty] = useState<Property | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -126,6 +127,16 @@ export function PropertyList({ properties, onEdit, onRefresh }: PropertyListProp
                       className="flex-1"
                     >
                       Modifier
+                    </Button>
+                  )}
+                  {onManageCalendar && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onManageCalendar(property)}
+                      className="flex-1"
+                    >
+                      Calendrier
                     </Button>
                   )}
                   <Button

@@ -1,19 +1,27 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Navigate, Link } from 'react-router-dom'
+import { Navigate, Link, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PropertyForm } from '@/components/properties/PropertyForm'
 import { PropertyList } from '@/components/properties/PropertyList'
+import { PropertyCalendar } from '@/components/calendar/PropertyCalendar'
+import { FinancialDashboard } from '@/components/financial/FinancialDashboard'
+import { ServiceQuoteGenerator } from '@/components/financial/ServiceQuoteGenerator'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { calculateOwnerMetrics, formatRevenue, formatOccupationRate, type OwnerMetrics } from '@/services/metricsService'
 import type { Property } from '@/types/database'
 
-type ViewMode = 'list' | 'add' | 'edit'
+type ViewMode = 'list' | 'add' | 'edit' | 'calendar' | 'financial' | 'quotes'
 
 export function PropertyOwnerDashboard() {
   const { user, signOut, loading } = useAuthStore()
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
+  const [searchParams, setSearchParams] = useSearchParams()
+  
+  // Get current view from URL params
+  const view = searchParams.get('view') as ViewMode || 'list'
+  const propertyId = searchParams.get('propertyId')
+  
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
   const [properties, setProperties] = useState<Property[]>([])
   const [propertiesLoading, setPropertiesLoading] = useState(false)
@@ -25,6 +33,27 @@ export function PropertyOwnerDashboard() {
     occupationRate: 0
   })
   const [metricsLoading, setMetricsLoading] = useState(false)
+
+  // Find editing property based on URL parameter
+  useEffect(() => {
+    if (propertyId && properties.length > 0) {
+      const property = properties.find(p => p.id === propertyId)
+      setEditingProperty(property || null)
+    } else {
+      setEditingProperty(null)
+    }
+  }, [propertyId, properties])
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      // The URL will automatically update, and our component will re-render
+      // with the correct view based on searchParams
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   const loadProperties = useCallback(async () => {
     if (!user?.id) return
@@ -98,25 +127,39 @@ export function PropertyOwnerDashboard() {
   }
 
   const handleAddProperty = () => {
-    setEditingProperty(null)
-    setViewMode('add')
+    setSearchParams({ view: 'add' })
   }
 
   const handleEditProperty = (property: Property) => {
-    setEditingProperty(property)
-    setViewMode('edit')
+    setSearchParams({ view: 'edit', propertyId: property.id })
+  }
+
+  const handleManageCalendar = (property: Property) => {
+    setSearchParams({ view: 'calendar', propertyId: property.id })
   }
 
   const handleFormSuccess = () => {
-    setViewMode('list')
-    setEditingProperty(null)
+    setSearchParams({}) // Go back to list view
     loadProperties() // Refresh properties after form success
     loadMetrics() // Refresh metrics as well
   }
 
   const handleFormCancel = () => {
-    setViewMode('list')
-    setEditingProperty(null)
+    // Use history.back() to go back to previous view
+    window.history.back()
+  }
+
+  const handleBackToList = () => {
+    // Use history.back() to go back to previous view  
+    window.history.back()
+  }
+
+  const handleManageFinances = () => {
+    setSearchParams({ view: 'financial' })
+  }
+
+  const handleGenerateQuotes = () => {
+    setSearchParams({ view: 'quotes' })
   }
 
   return (
@@ -152,7 +195,7 @@ export function PropertyOwnerDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {viewMode === 'list' && (
+        {view === 'list' && (
           <div className="space-y-6">
             {/* Action Bar */}
             <div className="flex justify-between items-center">
@@ -164,12 +207,28 @@ export function PropertyOwnerDashboard() {
                   Gérez vos propriétés et suivez leurs performances
                 </p>
               </div>
-              <Button 
-                onClick={handleAddProperty}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Ajouter une propriété
-              </Button>
+              <div className="flex space-x-3">
+                <Button 
+                  onClick={handleManageFinances}
+                  variant="outline"
+                  className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                >
+                  Gestion financière
+                </Button>
+                <Button 
+                  onClick={handleGenerateQuotes}
+                  variant="outline"
+                  className="border-green-200 text-green-700 hover:bg-green-50"
+                >
+                  Générer un devis
+                </Button>
+                <Button 
+                  onClick={handleAddProperty}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Ajouter une propriété
+                </Button>
+              </div>
             </div>
 
             {/* Quick Stats */}
@@ -263,6 +322,7 @@ export function PropertyOwnerDashboard() {
                   <PropertyList 
                     properties={properties}
                     onEdit={handleEditProperty}
+                    onManageCalendar={handleManageCalendar}
                     onRefresh={handleRefresh}
                   />
                 )}
@@ -271,7 +331,7 @@ export function PropertyOwnerDashboard() {
           </div>
         )}
 
-        {(viewMode === 'add' || viewMode === 'edit') && (
+        {(view === 'add' || view === 'edit') && (
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
               <Button
@@ -281,14 +341,80 @@ export function PropertyOwnerDashboard() {
                 ← Retour à la liste
               </Button>
               <h2 className="text-xl font-semibold text-gray-900">
-                {viewMode === 'add' ? 'Ajouter une propriété' : 'Modifier la propriété'}
+                {view === 'add' ? 'Ajouter une propriété' : 'Modifier la propriété'}
               </h2>
             </div>
 
-            <PropertyForm
+            <Card>
+              <CardContent className="p-6">
+                <PropertyForm
+                  property={editingProperty}
+                  onSuccess={handleFormSuccess}
+                  onCancel={handleFormCancel}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {view === 'calendar' && editingProperty && (
+          <div className="space-y-6">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={handleBackToList}
+              >
+                ← Retour à la liste
+              </Button>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Gestion du calendrier
+              </h2>
+            </div>
+
+            <PropertyCalendar
               property={editingProperty}
-              onSuccess={handleFormSuccess}
-              onCancel={handleFormCancel}
+              onRefresh={handleRefresh}
+            />
+          </div>
+        )}
+
+        {view === 'financial' && (
+          <div className="space-y-6">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={handleBackToList}
+              >
+                ← Retour à la liste
+              </Button>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Gestion financière
+              </h2>
+            </div>
+
+            <FinancialDashboard ownerId={user!.id} />
+          </div>
+        )}
+
+        {view === 'quotes' && (
+          <div className="space-y-6">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={handleBackToList}
+              >
+                ← Retour à la liste
+              </Button>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Génération de devis
+              </h2>
+            </div>
+
+            <ServiceQuoteGenerator 
+              ownerId={user!.id}
+              onQuoteGenerated={(quote) => {
+                console.log('Quote generated:', quote)
+              }}
             />
           </div>
         )}
