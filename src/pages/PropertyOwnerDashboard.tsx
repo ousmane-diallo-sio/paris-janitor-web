@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PropertyForm } from '@/components/properties/PropertyForm'
 import { PropertyList } from '@/components/properties/PropertyList'
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { calculateOwnerMetrics, formatRevenue, formatOccupationRate, type OwnerMetrics } from '@/services/metricsService'
 import type { Property } from '@/types/database'
 
 type ViewMode = 'list' | 'add' | 'edit'
@@ -13,6 +15,68 @@ export function PropertyOwnerDashboard() {
   const { user, signOut, loading } = useAuthStore()
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
+  const [properties, setProperties] = useState<Property[]>([])
+  const [propertiesLoading, setPropertiesLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [metrics, setMetrics] = useState<OwnerMetrics>({
+    totalProperties: 0,
+    approvedProperties: 0,
+    monthlyRevenue: 0,
+    occupationRate: 0
+  })
+  const [metricsLoading, setMetricsLoading] = useState(false)
+
+  const loadProperties = useCallback(async () => {
+    if (!user?.id) return
+
+    try {
+      setPropertiesLoading(true)
+      setError('')
+      
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        throw error
+      }
+
+      setProperties(data || [])
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des propriétés'
+      setError(errorMessage)
+      console.error('Error loading properties:', err)
+    } finally {
+      setPropertiesLoading(false)
+    }
+  }, [user?.id])
+
+  const loadMetrics = useCallback(async () => {
+    if (!user?.id) return
+
+    try {
+      setMetricsLoading(true)
+      const metricsData = await calculateOwnerMetrics(user.id)
+      setMetrics(metricsData)
+    } catch (err) {
+      console.error('Error loading metrics:', err)
+      // Keep default metrics on error
+    } finally {
+      setMetricsLoading(false)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    loadProperties()
+    loadMetrics()
+  }, [loadProperties, loadMetrics])
+
+  const handleRefresh = useCallback(() => {
+    loadProperties()
+    loadMetrics()
+  }, [loadProperties, loadMetrics])
 
   if (loading) {
     return (
@@ -46,6 +110,8 @@ export function PropertyOwnerDashboard() {
   const handleFormSuccess = () => {
     setViewMode('list')
     setEditingProperty(null)
+    loadProperties() // Refresh properties after form success
+    loadMetrics() // Refresh metrics as well
   }
 
   const handleFormCancel = () => {
@@ -115,8 +181,12 @@ export function PropertyOwnerDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">-</div>
-                  <p className="text-xs text-gray-500">En cours de calcul</p>
+                  <div className="text-2xl font-bold">
+                    {metricsLoading ? '...' : metrics.totalProperties}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {metricsLoading ? 'Chargement...' : 'Total de vos biens'}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -127,8 +197,12 @@ export function PropertyOwnerDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">-</div>
-                  <p className="text-xs text-gray-500">En cours de calcul</p>
+                  <div className="text-2xl font-bold">
+                    {metricsLoading ? '...' : metrics.approvedProperties}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {metricsLoading ? 'Chargement...' : 'Validées par PJ'}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -139,8 +213,12 @@ export function PropertyOwnerDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">-€</div>
-                  <p className="text-xs text-gray-500">En cours de calcul</p>
+                  <div className="text-2xl font-bold">
+                    {metricsLoading ? '...' : formatRevenue(metrics.monthlyRevenue)}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {metricsLoading ? 'Chargement...' : 'Commissions perçues'}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -151,8 +229,12 @@ export function PropertyOwnerDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">-%</div>
-                  <p className="text-xs text-gray-500">En cours de calcul</p>
+                  <div className="text-2xl font-bold">
+                    {metricsLoading ? '...' : formatOccupationRate(metrics.occupationRate)}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {metricsLoading ? 'Chargement...' : 'Ce mois-ci'}
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -162,12 +244,28 @@ export function PropertyOwnerDashboard() {
                 <CardTitle>Liste des propriétés</CardTitle>
               </CardHeader>
               <CardContent>
-                <PropertyList 
-                  onEdit={handleEditProperty}
-                  onDelete={() => {
-                    // Properties are automatically refreshed by PropertyList
-                  }}
-                />
+                {propertiesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="text-gray-500">Chargement des propriétés...</div>
+                  </div>
+                ) : error ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-700">{error}</p>
+                    <Button 
+                      onClick={loadProperties} 
+                      variant="outline" 
+                      className="mt-2"
+                    >
+                      Réessayer
+                    </Button>
+                  </div>
+                ) : (
+                  <PropertyList 
+                    properties={properties}
+                    onEdit={handleEditProperty}
+                    onRefresh={handleRefresh}
+                  />
+                )}
               </CardContent>
             </Card>
           </div>
@@ -188,6 +286,7 @@ export function PropertyOwnerDashboard() {
             </div>
 
             <PropertyForm
+              property={editingProperty}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
             />

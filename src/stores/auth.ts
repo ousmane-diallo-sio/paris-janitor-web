@@ -19,7 +19,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   signIn: async (email: string, password: string) => {
-    set({ loading: true })
     try {
       console.debug('Signing in:', email)
       const { error } = await supabase.auth.signInWithPassword({
@@ -31,13 +30,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error('Sign in error:', error)
       throw error
-    } finally {
-      set({ loading: false })
     }
   },
 
   signUp: async (email: string, password: string, userData: Partial<Profile>) => {
-    set({ loading: true })
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -54,8 +50,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error('Sign up error:', error)
       throw error
-    } finally {
-      set({ loading: false })
     }
   },
 

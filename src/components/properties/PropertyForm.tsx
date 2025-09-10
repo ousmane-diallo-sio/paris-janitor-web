@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { db } from '@/lib/database'
 import { useAuthStore } from '@/stores/auth'
-import type { TablesInsert } from '@/types/database'
+import type { TablesInsert, Property } from '@/types/database'
 
 const propertySchema = z.object({
   title: z.string().min(3, 'Le titre doit contenir au moins 3 caractères'),
@@ -26,28 +26,54 @@ const propertySchema = z.object({
 type PropertyFormData = z.infer<typeof propertySchema>
 
 interface PropertyFormProps {
+  property?: Property | null
   onSuccess: () => void
   onCancel: () => void
 }
 
-export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
+export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProps) {
   const { user } = useAuthStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const isEditing = !!property
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm<PropertyFormData>({
-    resolver: zodResolver(propertySchema),
-    defaultValues: {
+  const getDefaultValues = useCallback((): Partial<PropertyFormData> => {
+    if (property) {
+      return {
+        title: property.title || '',
+        description: property.description || '',
+        address: property.address || '',
+        city: property.city || '',
+        postal_code: property.postal_code || '',
+        bedrooms: property.bedrooms || 1,
+        bathrooms: property.bathrooms || 1,
+        capacity: property.capacity || 2,
+        nightly_rate: property.nightly_rate || 80,
+      }
+    }
+    return {
       bedrooms: 1,
       bathrooms: 1,
       capacity: 2,
       nightly_rate: 80
     }
+  }, [property])
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: getDefaultValues()
   })
+
+  // Reset form when property prop changes (switching between add/edit modes)
+  useEffect(() => {
+    const defaultValues = getDefaultValues()
+    reset(defaultValues)
+  }, [getDefaultValues, reset])
 
   const onSubmit = async (data: PropertyFormData) => {
     if (!user) return
@@ -56,18 +82,26 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
     setError('')
 
     try {
-      const propertyData: TablesInsert<'properties'> = {
-        ...data,
-        owner_id: user.id,
-        validation_status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+      if (isEditing && property) {
+        const updateData = {
+          ...data,
+          updated_at: new Date().toISOString()
+        }
+        await db.properties.update(property.id, updateData)
+      } else {
+        const propertyData: TablesInsert<'properties'> = {
+          ...data,
+          owner_id: user.id,
+          validation_status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        await db.properties.create(propertyData)
       }
-
-      await db.properties.create(propertyData)
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'ajout de la propriété')
+      setError(err instanceof Error ? err.message : 
+        `Erreur lors de ${isEditing ? 'la modification' : 'l\'ajout'} de la propriété`)
     } finally {
       setIsSubmitting(false)
     }
@@ -76,7 +110,9 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Ajouter une nouvelle propriété</CardTitle>
+        <CardTitle>
+          {isEditing ? 'Modifier la propriété' : 'Ajouter une nouvelle propriété'}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -244,10 +280,10 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              loading={isSubmitting}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isSubmitting ? 'Ajout en cours...' : 'Ajouter la propriété'}
+              {isEditing ? 'Modifier la propriété' : 'Ajouter la propriété'}
             </Button>
           </div>
         </form>

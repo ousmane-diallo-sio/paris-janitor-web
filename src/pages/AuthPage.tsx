@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { envConfig } from '@/lib/env-config'
-import { devUtils } from '@/lib/dev-utils'
 
 function getErrorMessage(error: unknown): string {
   if (typeof error === 'string') return error
@@ -71,7 +70,7 @@ function getErrorMessage(error: unknown): string {
 
 export function AuthPage() {
   const navigate = useNavigate()
-  const { user, signIn, signUp, loading } = useAuthStore()
+  const { user, signIn, signUp } = useAuthStore()
 
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
@@ -83,6 +82,33 @@ export function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const isDevelopment = import.meta.env.DEV
+  
+  useEffect(() => {
+    if (user && isSubmitting) {
+      console.debug('AuthPage: User authenticated successfully, updating UI')
+      setIsSubmitting(false)
+      setSuccessMessage('Connexion réussie ! Redirection en cours...')
+      setTimeout(() => {
+        navigate(`/dashboard/${user.role?.replace('_', '-')}`)
+      }, 1000)
+    }
+  }, [user, isSubmitting, navigate])
+
+  // Safety timeout for login attempts - reset isSubmitting after reasonable time
+  useEffect(() => {
+    if (isSubmitting && isLogin) {
+      const timeout = setTimeout(() => {
+        console.warn('AuthPage: Login timeout - resetting isSubmitting state')
+        setIsSubmitting(false)
+        if (!error) {
+          setError('⏱️ Délai d\'attente dépassé - La connexion prend trop de temps')
+        }
+      }, 30000) // 30 second timeout
+
+      return () => clearTimeout(timeout)
+    }
+  }, [isSubmitting, isLogin, error])
+
   const fillDevCredentials = useCallback(() => {
     if (isLogin) {
       setEmail(envConfig.dev.email)
@@ -99,7 +125,7 @@ export function AuthPage() {
     setSuccessMessage('')
   }, [isLogin])
 
-  if (user) {
+  if (user && !isSubmitting) {
     return <Navigate to={`/dashboard/${user.role?.replace('_', '-')}`} replace />
   }
 
@@ -108,6 +134,7 @@ export function AuthPage() {
     setError('')
     setSuccessMessage('')
     setIsSubmitting(true)
+    
     if (!email.trim()) {
       setError('L\'email est requis')
       setIsSubmitting(false)
@@ -130,20 +157,30 @@ export function AuthPage() {
         return
       }
     }
+    
     try {
       if (isLogin) {
+        console.debug('AuthPage: Starting login process')
         await signIn(email.trim(), password)
+        console.debug('AuthPage: Login completed successfully')
       } else {
+        console.debug('AuthPage: Starting signup process')
         await signUp(email.trim(), password, {
           full_name: fullName.trim(),
           phone: phone.trim(),
           role,
         })
+        console.debug('AuthPage: Signup completed successfully')
         setSuccessMessage('Inscription réussie ! Vous pouvez maintenant vous connecter.')
+        setIsLogin(true)
+        setPassword('')
+        setIsSubmitting(false)
       }
     } catch (err: unknown) {
-      setError(getErrorMessage(err))
-    } finally {
+      console.error('AuthPage: Authentication error:', err)
+      const errorMessage = getErrorMessage(err)
+      console.debug('AuthPage: Setting error message:', errorMessage)
+      setError(errorMessage)
       setIsSubmitting(false)
     }
   }
@@ -232,6 +269,7 @@ export function AuthPage() {
                   value={email}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setEmail(e.target.value)
+                    if (error) setError('')
                     if (successMessage) setSuccessMessage('')
                   }}
                   placeholder="Entrez votre email"
@@ -250,6 +288,7 @@ export function AuthPage() {
                   value={password}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setPassword(e.target.value)
+                    if (error) setError('')
                     if (successMessage) setSuccessMessage('')
                   }}
                   placeholder="Entrez votre mot de passe"
@@ -271,7 +310,8 @@ export function AuthPage() {
                       value={fullName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setFullName(e.target.value)
-                        if (error && successMessage) setSuccessMessage('')
+                        if (error) setError('')
+                        if (successMessage) setSuccessMessage('')
                       }}
                       className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${error && !fullName.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
                         }`}
@@ -287,7 +327,8 @@ export function AuthPage() {
                       value={phone}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         setPhone(e.target.value)
-                        if (error && successMessage) setSuccessMessage('')
+                        if (error) setError('')
+                        if (successMessage) setSuccessMessage('')
                       }}
                       className="focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200"
                     />
@@ -323,7 +364,7 @@ export function AuthPage() {
 
               {error && (
                 <div className={`border rounded-lg p-4 flex items-start space-x-3 ${error.includes('Échec de connexion') || error.includes('Impossible de se connecter') || error.includes('Délai d\'attente')
-                  ? 'bg-red-100 border-red-300 shadow-lg' // More prominent for connection errors
+                  ? 'bg-red-100 border-red-300 shadow-lg'
                   : 'bg-red-50 border-red-200'
                   }`}>
                   <div className="flex-shrink-0">
@@ -371,11 +412,17 @@ export function AuthPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-all duration-200"
-                loading={loading || isSubmitting}
-                disabled={loading || isSubmitting}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting}
               >
-                {isLogin ? '🔑 Se connecter' : '🚀 S\'inscrire'}
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>{isLogin ? 'Connexion...' : 'Inscription...'}</span>
+                  </div>
+                ) : (
+                  <span>{isLogin ? '🔑 Se connecter' : '🚀 S\'inscrire'}</span>
+                )}
               </Button>
             </form>
 
