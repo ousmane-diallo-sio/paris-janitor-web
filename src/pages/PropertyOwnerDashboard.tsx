@@ -18,7 +18,6 @@ export function PropertyOwnerDashboard() {
   const { user, signOut, loading } = useAuthStore()
   const [searchParams, setSearchParams] = useSearchParams()
   
-  // Get current view from URL params
   const view = searchParams.get('view') as ViewMode || 'list'
   const propertyId = searchParams.get('propertyId')
   
@@ -34,7 +33,6 @@ export function PropertyOwnerDashboard() {
   })
   const [metricsLoading, setMetricsLoading] = useState(false)
 
-  // Find editing property based on URL parameter
   useEffect(() => {
     if (propertyId && properties.length > 0) {
       const property = properties.find(p => p.id === propertyId)
@@ -44,7 +42,6 @@ export function PropertyOwnerDashboard() {
     }
   }, [propertyId, properties])
 
-  // Handle browser back/forward navigation
   useEffect(() => {
     const handlePopState = () => {
       // The URL will automatically update, and our component will re-render
@@ -91,7 +88,6 @@ export function PropertyOwnerDashboard() {
       setMetrics(metricsData)
     } catch (err) {
       console.error('Error loading metrics:', err)
-      // Keep default metrics on error
     } finally {
       setMetricsLoading(false)
     }
@@ -139,18 +135,16 @@ export function PropertyOwnerDashboard() {
   }
 
   const handleFormSuccess = () => {
-    setSearchParams({}) // Go back to list view
-    loadProperties() // Refresh properties after form success
-    loadMetrics() // Refresh metrics as well
+    setSearchParams({})
+    loadProperties()
+    loadMetrics()
   }
 
   const handleFormCancel = () => {
-    // Use history.back() to go back to previous view
     window.history.back()
   }
 
   const handleBackToList = () => {
-    // Use history.back() to go back to previous view  
     window.history.back()
   }
 

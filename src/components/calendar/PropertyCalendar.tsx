@@ -12,6 +12,7 @@ import {
   type CalendarEvent 
 } from '@/services/calendarService'
 import { AvailabilityDialog } from './AvailabilityDialog'
+import { notify, logError } from '@/lib/error-handling'
 import type { Property } from '@/types/database'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
@@ -52,14 +53,17 @@ export function PropertyCalendar({ property, onRefresh }: PropertyCalendarProps)
     try {
       setLoading(true)
       
-      // Calculate range based on current view
       const startDate = new Date(date.getFullYear(), date.getMonth() - 1, 1)
       const endDate = new Date(date.getFullYear(), date.getMonth() + 2, 0)
       
       const calendarEvents = await getPropertyCalendarEvents(property.id, startDate, endDate)
       setEvents(calendarEvents)
     } catch (error) {
-      console.error('Error loading calendar events:', error)
+      logError(error, 'PropertyCalendar.loadEvents')
+      notify.error(error, {
+        label: 'Réessayer',
+        onClick: () => loadEvents()
+      })
     } finally {
       setLoading(false)
     }
@@ -69,11 +73,8 @@ export function PropertyCalendar({ property, onRefresh }: PropertyCalendarProps)
     loadEvents()
   }, [loadEvents])
 
-  // Handle browser navigation - component will unmount naturally when navigating away
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Clean up any pending operations if needed
-    }
+    const handleBeforeUnload = () => {}
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
@@ -86,7 +87,6 @@ export function PropertyCalendar({ property, onRefresh }: PropertyCalendarProps)
 
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     if (event.type === 'unavailable') {
-      // Allow editing of unavailable periods
       setSelectedSlot({ 
         start: event.start, 
         end: event.end, 
@@ -108,8 +108,15 @@ export function PropertyCalendar({ property, onRefresh }: PropertyCalendarProps)
       onRefresh?.()
       setShowAvailabilityDialog(false)
       setSelectedSlot(null)
+      
+      const actionText = available ? 'disponible' : 'indisponible'
+      notify.success(`Calendrier mis à jour - Période marquée comme ${actionText}`)
     } catch (error) {
-      console.error('Error setting availability:', error)
+      logError(error, 'PropertyCalendar.handleSetAvailability')
+      notify.error(error, {
+        label: 'Réessayer',
+        onClick: () => handleSetAvailability(start, end, available, reason)
+      })
     }
   }
 
@@ -119,15 +126,15 @@ export function PropertyCalendar({ property, onRefresh }: PropertyCalendarProps)
 
     switch (event.type) {
       case 'booking':
-        backgroundColor = '#059669' // Emerald green for confirmed bookings
+        backgroundColor = '#059669'
         color = 'white'
         break
       case 'unavailable':
-        backgroundColor = '#dc2626' // Rose red for unavailable periods
+        backgroundColor = '#dc2626'
         color = 'white'
         break
       case 'available':
-        backgroundColor = '#6b7280' // Gray for available periods
+        backgroundColor = '#6b7280'
         color = 'white'
         break
     }

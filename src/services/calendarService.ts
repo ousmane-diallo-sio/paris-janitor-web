@@ -105,7 +105,6 @@ export async function getPropertyCalendarEvents(
   try {
     const events: CalendarEvent[] = []
 
-    // Get confirmed bookings
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
       .select('*')
@@ -116,7 +115,6 @@ export async function getPropertyCalendarEvents(
 
     if (bookingsError) throw bookingsError
 
-    // Add booking events
     bookings?.forEach(booking => {
       events.push({
         id: `booking-${booking.id}`,
@@ -128,10 +126,8 @@ export async function getPropertyCalendarEvents(
       })
     })
 
-    // Get availability periods
     const availability = await getPropertyAvailability(propertyId)
     
-    // Add unavailable periods
     availability
       .filter(period => !period.available)
       .forEach((period, index) => {
@@ -171,17 +167,13 @@ export async function setPropertyAvailability(
   reason?: string
 ): Promise<void> {
   try {
-    // Get existing availability
-    const existingPeriods = await getPropertyAvailability(propertyId)
-    
-    // Remove overlapping periods
+    const existingPeriods = await getPropertyAvailability(propertyId)    
     const filteredPeriods = existingPeriods.filter(period => {
       return !(
         (startDate <= period.end && endDate >= period.start)
       )
     })
 
-    // Add new period
     const newPeriod: AvailabilityPeriod = {
       start: startOfDay(startDate),
       end: endOfDay(endDate),
@@ -191,7 +183,6 @@ export async function setPropertyAvailability(
 
     const updatedPeriods = [...filteredPeriods, newPeriod]
 
-    // Update in database
     await updatePropertyAvailability(propertyId, updatedPeriods)
   } catch (error) {
     console.error('Error setting property availability:', error)
@@ -212,7 +203,6 @@ export async function checkPropertyAvailability(
   checkOut: Date
 ): Promise<boolean> {
   try {
-    // Check for existing bookings
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
       .select('check_in, check_out')
@@ -224,15 +214,13 @@ export async function checkPropertyAvailability(
     if (bookingsError) throw bookingsError
 
     if (bookings && bookings.length > 0) {
-      return false // Property is booked
+      return false
     }
 
-    // Check availability calendar
     const availability = await getPropertyAvailability(propertyId)
     
     for (const period of availability) {
       if (!period.available) {
-        // Check if the requested period overlaps with unavailable period
         if (checkIn <= period.end && checkOut >= period.start) {
           return false
         }

@@ -10,6 +10,10 @@ import { AuthPage } from '@/pages/AuthPage'
 import { HomePage } from '@/pages/HomePage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { PropertySearchPage } from '@/pages/PropertySearchPage'
+import { PropertyDetailsPage } from '@/pages/PropertyDetailsPage'
+import { Toaster } from '@/components/ui/sonner'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import { NetworkStatusIndicator } from '@/components/NetworkStatus'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,7 +25,7 @@ const queryClient = new QueryClient({
 })
 
 function App() {
-  const { user, initialize, loading } = useAuthStore()
+  const { initialize, loading } = useAuthStore()
 
   useEffect(() => {
     initialize()
@@ -39,26 +43,31 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/search" element={<PropertySearchPage />} />
-            
-            {/* Protected routes - always rendered but with internal auth checks */}
-            <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />
-            <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
-            <Route path="/dashboard/service-provider" element={<ServiceProviderDashboard />} />
-            
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </Router>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/search" element={<PropertySearchPage />} />
+              <Route path="/property/:id" element={<PropertyDetailsPage />} />
+              
+              {/* Protected routes - always rendered but with internal auth checks */}
+              <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />
+              <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
+              <Route path="/dashboard/service-provider" element={<ServiceProviderDashboard />} />
+              
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </Router>
+        <ReactQueryDevtools initialIsOpen={false} />
+        <Toaster />
+        <NetworkStatusIndicator />
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }
 

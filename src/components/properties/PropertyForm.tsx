@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { db } from '@/lib/database'
 import { useAuthStore } from '@/stores/auth'
+import { notify, handleAsyncOperation } from '@/lib/error-handling'
 import type { TablesInsert, Property } from '@/types/database'
 
 const propertySchema = z.object({
@@ -34,7 +35,6 @@ interface PropertyFormProps {
 export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProps) {
   const { user } = useAuthStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
   const isEditing = !!property
 
   const getDefaultValues = useCallback((): Partial<PropertyFormData> => {
@@ -69,16 +69,13 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
     defaultValues: getDefaultValues()
   })
 
-  // Reset form when property prop changes (switching between add/edit modes)
   useEffect(() => {
     const defaultValues = getDefaultValues()
     reset(defaultValues)
   }, [getDefaultValues, reset])
 
-  // Handle browser back button
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      // Prevent accidental navigation if form has unsaved changes
       if (isDirty) {
         event.preventDefault()
         event.returnValue = ''
@@ -90,34 +87,43 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
   }, [isDirty])
 
   const onSubmit = async (data: PropertyFormData) => {
-    if (!user) return
+    if (!user) {
+      notify.error('Vous devez être connecté pour effectuer cette action');
+      return;
+    }
 
-    setIsSubmitting(true)
-    setError('')
+    setIsSubmitting(true);
 
-    try {
-      if (isEditing && property) {
-        const updateData = {
-          ...data,
-          updated_at: new Date().toISOString()
+    const { error } = await handleAsyncOperation(
+      async () => {
+        if (isEditing && property) {
+          const updateData = {
+            ...data,
+            updated_at: new Date().toISOString()
+          }
+          return await db.properties.update(property.id, updateData)
+        } else {
+          const propertyData: TablesInsert<'properties'> = {
+            ...data,
+            owner_id: user.id,
+            validation_status: 'pending',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          return await db.properties.create(propertyData)
         }
-        await db.properties.update(property.id, updateData)
-      } else {
-        const propertyData: TablesInsert<'properties'> = {
-          ...data,
-          owner_id: user.id,
-          validation_status: 'pending',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-        await db.properties.create(propertyData)
+      },
+      {
+        successMessage: isEditing 
+          ? 'Propriété modifiée avec succès !' 
+          : 'Propriété ajoutée avec succès ! Elle sera validée par notre équipe.',
       }
-      onSuccess()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 
-        `Erreur lors de ${isEditing ? 'la modification' : 'l\'ajout'} de la propriété`)
-    } finally {
-      setIsSubmitting(false)
+    );
+
+    setIsSubmitting(false);
+
+    if (!error) {
+      onSuccess();
     }
   }
 
@@ -276,12 +282,6 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
               </div>
             </div>
           </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
 
           <div className="flex justify-end space-x-3">
             <Button

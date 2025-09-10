@@ -81,6 +81,7 @@ export function AuthPage() {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [selectedDevUserType, setSelectedDevUserType] = useState<'property_owner' | 'traveler' | 'service_provider'>('property_owner')
   const isDevelopment = import.meta.env.DEV
   
   useEffect(() => {
@@ -94,7 +95,6 @@ export function AuthPage() {
     }
   }, [user, isSubmitting, navigate])
 
-  // Safety timeout for login attempts - reset isSubmitting after reasonable time
   useEffect(() => {
     if (isSubmitting && isLogin) {
       const timeout = setTimeout(() => {
@@ -103,27 +103,31 @@ export function AuthPage() {
         if (!error) {
           setError('⏱️ Délai d\'attente dépassé - La connexion prend trop de temps')
         }
-      }, 30000) // 30 second timeout
+      }, 30000)
 
       return () => clearTimeout(timeout)
     }
   }, [isSubmitting, isLogin, error])
 
-  const fillDevCredentials = useCallback(() => {
+  const fillDevCredentials = useCallback((userType?: 'property_owner' | 'traveler' | 'service_provider') => {
+    const devUserType = userType || selectedDevUserType
+    const devUser = envConfig.dev[devUserType === 'property_owner' ? 'propertyOwner' : 
+                                    devUserType === 'traveler' ? 'traveler' : 'serviceProvider']
+    
     if (isLogin) {
-      setEmail(envConfig.dev.email)
-      setPassword(envConfig.dev.password)
+      setEmail(devUser.email)
+      setPassword(devUser.password)
     } else {
       const timestamp = Date.now().toString().slice(-4)
-      setEmail(envConfig.dev.email)
-      setPassword(envConfig.dev.password)
-      setFullName('Dev User')
-      setPhone(`+3312345${timestamp}`)
-      setRole('property_owner')
+      setEmail(devUser.email)
+      setPassword(devUser.password)
+      setFullName(devUser.fullName)
+      setPhone(`${devUser.phone.slice(0, -1)}${timestamp.slice(-1)}`)
+      setRole(devUser.role)
     }
     setError('')
     setSuccessMessage('')
-  }, [isLogin])
+  }, [isLogin, selectedDevUserType])
 
   if (user && !isSubmitting) {
     return <Navigate to={`/dashboard/${user.role?.replace('_', '-')}`} replace />
@@ -199,38 +203,98 @@ export function AuthPage() {
         </Button>
       </div>
       {isDevelopment && (
-        <div className="w-full fixed bottom-20 left-2 z-50 flex space-x-2">
-          <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-2 py-1 rounded-md text-xs font-medium">
-            🔧 DEV MODE
-          </div>
-          <div className={`px-2 py-1 rounded-md text-xs font-medium ${navigator.onLine
-            ? 'bg-green-100 border border-green-300 text-green-800'
-            : 'bg-red-100 border border-red-300 text-red-800'
-            }`}>
-            {navigator.onLine ? '🌐 En ligne' : '❌ Hors ligne'}
-          </div>
-          {error && (
-            <div className="bg-red-100 border border-red-300 text-red-800 px-2 py-1 rounded-md text-xs font-medium">
-              🚨 Error: {error.slice(0, 30)}...
-            </div>
-          )}
-          <div className='flex-1'></div>
+        <div className="w-1/4 fixed bottom-16 left-2 z-50 space-y-2">
           <div className="flex space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={fillDevCredentials}
-              className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100 shadow-sm"
-            >
-              🚀 Dev Fill
-            </Button>
+            <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-2 py-1 rounded-md text-xs font-medium">
+              🔧 DEV MODE
+            </div>
+            <div className={`px-2 py-1 rounded-md text-xs font-medium ${navigator.onLine
+              ? 'bg-green-100 border border-green-300 text-green-800'
+              : 'bg-red-100 border border-red-300 text-red-800'
+              }`}>
+              {navigator.onLine ? '🌐 En ligne' : '❌ Hors ligne'}
+            </div>
+            {error && (
+              <div className="bg-red-100 border border-red-300 text-red-800 px-2 py-1 rounded-md text-xs font-medium">
+                🚨 Error: {error.slice(0, 30)}...
+              </div>
+            )}
+            <div className='flex-1'></div>
           </div>
-          <div className="absolute right-0 top-full mt-1 hidden group-hover:block z-10">
-            <div className="bg-gray-800 text-white text-xs rounded py-2 px-3 whitespace-nowrap">
-              <div>{isLogin ? 'Fill with dev credentials or delete dev user' : 'Fill with sample registration data'}</div>
-              <div className="text-gray-400 mt-1">⌘⇧F (Ctrl+Shift+F)</div>
-              <div className="text-gray-400 mt-1">🌐 Test server connection</div>
+          
+          {/* Dev User Type Selector & Fill Buttons */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm max-w-md">
+            <div className="text-xs font-medium text-gray-700 mb-2">🧪 Dev Credentials</div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Select 
+                  value={selectedDevUserType} 
+                  onValueChange={setSelectedDevUserType}
+                >
+                  <SelectTrigger className="h-7 text-xs flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[60]">
+                    <SelectItem value="property_owner">🏠 Propriétaire</SelectItem>
+                    <SelectItem value="traveler">✈️ Voyageur</SelectItem>
+                    <SelectItem value="service_provider">🔧 Prestataire</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDevCredentials(selectedDevUserType)}
+                  className="text-xs bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 flex-1"
+                >
+                  {selectedDevUserType === 'property_owner' ? '🏠' : 
+                   selectedDevUserType === 'traveler' ? '✈️' : '🔧'} 
+                  Fill {selectedDevUserType === 'property_owner' ? 'Owner' : 
+                        selectedDevUserType === 'traveler' ? 'Traveler' : 'Provider'}
+                </Button>
+                
+                <div className="flex space-x-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fillDevCredentials('property_owner')}
+                    className="text-xs bg-green-50 border-green-200 text-green-800 hover:bg-green-100 px-2"
+                    title="Fill Property Owner"
+                  >
+                    🏠
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fillDevCredentials('traveler')}
+                    className="text-xs bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 px-2"
+                    title="Fill Traveler"
+                  >
+                    ✈️
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fillDevCredentials('service_provider')}
+                    className="text-xs bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 px-2"
+                    title="Fill Service Provider"
+                  >
+                    🔧
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="text-xs text-gray-500">
+                Email: {envConfig.dev[selectedDevUserType === 'property_owner' ? 'propertyOwner' : 
+                                     selectedDevUserType === 'traveler' ? 'traveler' : 'serviceProvider'].email}
+              </div>
             </div>
           </div>
         </div>

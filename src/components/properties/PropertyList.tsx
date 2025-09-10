@@ -13,6 +13,7 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog'
 import { supabase } from '@/lib/supabase'
+import { notify, logError } from '@/lib/error-handling'
 import type { Property } from '@/types/database'
 
 interface PropertyListProps {
@@ -41,12 +42,14 @@ export function PropertyList({ properties, onEdit, onManageCalendar, onRefresh }
         throw error;
       }
       
-      console.log('Property deleted successfully');
-      // Refresh properties list
+      notify.success('Propriété supprimée avec succès');
       onRefresh();
     } catch (error) {
-      console.error('Error deleting property:', error);
-      // In a real app, you'd show a toast or error message here
+      logError(error, 'PropertyList.handleDelete');
+      notify.error(error, {
+        label: 'Réessayer',
+        onClick: () => handleDelete(id)
+      });
     } finally {
       setIsDeleting(false);
       setDeletingProperty(null);

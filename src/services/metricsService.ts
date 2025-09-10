@@ -14,7 +14,6 @@ export interface OwnerMetrics {
  */
 export async function calculateOwnerMetrics(ownerId: string): Promise<OwnerMetrics> {
   try {
-    // Get all properties for this owner
     const { data: properties, error: propertiesError } = await supabase
       .from('properties')
       .select('*')
@@ -35,10 +34,8 @@ export async function calculateOwnerMetrics(ownerId: string): Promise<OwnerMetri
       }
     }
 
-    // Get property IDs for bookings query
     const propertyIds = allProperties.map(p => p.id)
 
-    // Calculate current month boundaries (in Europe/Paris timezone)
     const now = new Date()
     const currentMonth = now.getMonth()
     const currentYear = now.getFullYear()
@@ -46,7 +43,6 @@ export async function calculateOwnerMetrics(ownerId: string): Promise<OwnerMetri
     const monthStart = new Date(currentYear, currentMonth, 1)
     const monthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999)
 
-    // Get bookings for this month
     const { data: monthlyBookings, error: bookingsError } = await supabase
       .from('bookings')
       .select('*')
@@ -58,19 +54,17 @@ export async function calculateOwnerMetrics(ownerId: string): Promise<OwnerMetri
 
     if (bookingsError) throw bookingsError
 
-    // Calculate monthly revenue (commission only)
     const monthlyRevenue = (monthlyBookings || []).reduce((total, booking) => {
       return total + (booking.commission_amount || 0)
     }, 0)
 
-    // Calculate occupation rate for current month
     const occupationRate = await calculateOccupationRate(propertyIds, monthStart, monthEnd)
 
     return {
       totalProperties,
       approvedProperties,
-      monthlyRevenue: Math.round(monthlyRevenue / 100), // Convert from cents to euros
-      occupationRate: Math.round(occupationRate * 100) / 100 // Round to 2 decimal places
+      monthlyRevenue: Math.round(monthlyRevenue / 100),
+      occupationRate: Math.round(occupationRate * 100) / 100
     }
   } catch (error) {
     console.error('Error calculating owner metrics:', error)
@@ -93,7 +87,6 @@ async function calculateOccupationRate(
   if (propertyIds.length === 0) return 0
 
   try {
-    // Get all confirmed bookings in the period
     const { data: bookings, error } = await supabase
       .from('bookings')
       .select('check_in, check_out, property_id')
@@ -106,18 +99,15 @@ async function calculateOccupationRate(
 
     if (!bookings || bookings.length === 0) return 0
 
-    // Calculate total days in period
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
     const totalPropertyDays = totalDays * propertyIds.length
 
-    // Calculate occupied days
     let occupiedDays = 0
     
     bookings.forEach(booking => {
       const checkIn = new Date(booking.check_in)
       const checkOut = new Date(booking.check_out)
       
-      // Adjust booking dates to fit within our analysis period
       const actualStart = new Date(Math.max(checkIn.getTime(), startDate.getTime()))
       const actualEnd = new Date(Math.min(checkOut.getTime(), endDate.getTime()))
       

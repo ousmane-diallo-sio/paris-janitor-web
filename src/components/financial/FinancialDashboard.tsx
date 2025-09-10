@@ -20,6 +20,7 @@ import {
   type PaymentSummary,
   type InvoiceData
 } from '@/services/financialService'
+import { notify, logError } from '@/lib/error-handling'
 
 interface FinancialDashboardProps {
   ownerId: string
@@ -58,7 +59,11 @@ export function FinancialDashboard({ ownerId }: FinancialDashboardProps) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des données financières'
       setError(errorMessage)
-      console.error('Error loading financial data:', err)
+      logError(err, 'FinancialDashboard.loadFinancialData')
+      notify.error(err, {
+        label: 'Réessayer',
+        onClick: () => loadFinancialData()
+      })
     } finally {
       setLoading(false)
     }

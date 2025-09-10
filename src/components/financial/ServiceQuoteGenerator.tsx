@@ -15,6 +15,7 @@ import {
   type ServiceQuote 
 } from '@/services/financialService'
 import { supabase } from '@/lib/supabase'
+import { notify, logError } from '@/lib/error-handling'
 
 const quoteSchema = z.object({
   service_type: z.string().min(1, 'Veuillez sélectionner un service'),
@@ -67,16 +68,23 @@ export function ServiceQuoteGenerator({ ownerId, onQuoteGenerated }: ServiceQuot
       const quoteData = await generateServiceQuote(serviceType, qty)
       setQuote(quoteData)
       onQuoteGenerated?.(quoteData)
+      
+      if (quoteData.total_amount > 0) {
+        notify.success(`Devis généré: ${formatCurrency(quoteData.total_amount)}`)
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la génération du devis'
       setError(errorMessage)
-      console.error('Error generating quote:', err)
+      logError(err, 'ServiceQuoteGenerator.generateQuote')
+      notify.error(err, {
+        label: 'Réessayer',
+        onClick: () => generateQuote(serviceType, qty)
+      })
     } finally {
       setLoading(false)
     }
   }, [onQuoteGenerated])
 
-  // Load services
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -87,15 +95,18 @@ export function ServiceQuoteGenerator({ ownerId, onQuoteGenerated }: ServiceQuot
 
         if (servicesData.data) setServices(servicesData.data)
       } catch (err) {
-        console.error('Error loading data:', err)
+        logError(err, 'ServiceQuoteGenerator.loadData')
         setError('Erreur lors du chargement des données')
+        notify.error('Impossible de charger la liste des services', {
+          label: 'Réessayer',
+          onClick: () => loadData()
+        })
       }
     }
 
     loadData()
   }, [ownerId])
 
-  // Auto-generate quote when service type or quantity changes
   useEffect(() => {
     if (selectedServiceType && quantity) {
       generateQuote(selectedServiceType, quantity)

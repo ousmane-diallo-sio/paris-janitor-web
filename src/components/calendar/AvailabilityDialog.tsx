@@ -52,7 +52,6 @@ export function AvailabilityDialog({
       setEndDate(format(initialDates.end, 'yyyy-MM-dd'))
       setAction(initialDates.action || 'block')
     } else {
-      // Default to today and tomorrow
       const today = new Date()
       const tomorrow = addDays(today, 1)
       setStartDate(format(today, 'yyyy-MM-dd'))
