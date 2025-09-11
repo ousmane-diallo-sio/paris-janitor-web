@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
+import { ErrorBoundaryTest } from '@/components/ErrorBoundaryTest'
 
 export function HomePage() {
   const { user } = useAuthStore()
@@ -248,6 +249,19 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Development Only: ErrorBoundary Test Component */}
+      {process.env.NODE_ENV === 'development' && (
+        <section className="py-8 bg-orange-50 border-t-2 border-orange-200">
+          <div className="container px-4">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-orange-800">Development Tools</h3>
+              <p className="text-sm text-orange-600">These controls are only visible in development mode</p>
+            </div>
+            <ErrorBoundaryTest />
+          </div>
+        </section>
+      )}
 
       <footer className="bg-white border-t py-12">
         <div className="container px-4">

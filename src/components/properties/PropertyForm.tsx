@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { ImageUpload } from '@/components/ui/image-upload'
 import { db } from '@/lib/database'
 import { useAuthStore } from '@/stores/auth'
 import { notify, handleAsyncOperation } from '@/lib/error-handling'
@@ -35,6 +36,7 @@ interface PropertyFormProps {
 export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProps) {
   const { user } = useAuthStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [images, setImages] = useState<string[]>(property?.images || [])
   const isEditing = !!property
 
   const getDefaultValues = useCallback((): Partial<PropertyFormData> => {
@@ -72,7 +74,8 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
   useEffect(() => {
     const defaultValues = getDefaultValues()
     reset(defaultValues)
-  }, [getDefaultValues, reset])
+    setImages(property?.images || [])
+  }, [getDefaultValues, reset, property])
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -99,12 +102,14 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
         if (isEditing && property) {
           const updateData = {
             ...data,
+            images,
             updated_at: new Date().toISOString()
           }
           return await db.properties.update(property.id, updateData)
         } else {
           const propertyData: TablesInsert<'properties'> = {
             ...data,
+            images,
             owner_id: user.id,
             validation_status: 'pending',
             created_at: new Date().toISOString(),
@@ -281,6 +286,17 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Images */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Photos de la propriété</h3>
+            <ImageUpload
+              images={images}
+              onImagesChange={setImages}
+              maxImages={5}
+              propertyId={property?.id}
+            />
           </div>
 
           <div className="flex justify-end space-x-3">

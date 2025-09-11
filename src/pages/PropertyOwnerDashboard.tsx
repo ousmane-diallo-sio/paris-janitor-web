@@ -5,8 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PropertyForm } from '@/components/properties/PropertyForm'
 import { PropertyList } from '@/components/properties/PropertyList'
 import { PropertyCalendar } from '@/components/calendar/PropertyCalendar'
-import { FinancialDashboard } from '@/components/financial/FinancialDashboard'
-import { ServiceQuoteGenerator } from '@/components/financial/ServiceQuoteGenerator'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { calculateOwnerMetrics, formatRevenue, formatOccupationRate, type OwnerMetrics } from '@/services/metricsService'
@@ -386,7 +384,7 @@ export function PropertyOwnerDashboard() {
               </h2>
             </div>
 
-            <FinancialDashboard ownerId={user!.id} />
+            {/* <FinancialDashboard ownerId={user!.id} /> */}
           </div>
         )}
 
@@ -404,12 +402,12 @@ export function PropertyOwnerDashboard() {
               </h2>
             </div>
 
-            <ServiceQuoteGenerator 
+            {/* <ServiceQuoteGenerator 
               ownerId={user!.id}
               onQuoteGenerated={(quote) => {
                 console.log('Quote generated:', quote)
               }}
-            />
+            /> */}
           </div>
         )}
       </main>

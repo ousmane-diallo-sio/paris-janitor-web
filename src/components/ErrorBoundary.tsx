@@ -44,8 +44,21 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     })
 
+    // Always log the error
     logError(error, 'ErrorBoundary')
-    console.error('Error Boundary caught an error:', error, errorInfo)
+    console.error('🚨 ErrorBoundary caught an error:', error)
+    console.error('📍 Component stack:', errorInfo.componentStack)
+    
+    // Force show error details in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('🔧 DEV MODE - Full error details:', {
+        error: error.toString(),
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString()
+      })
+    }
 
     this.props.onError?.(error, errorInfo)
 
@@ -121,17 +134,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback
-      }
-
+      // In development, always show our error UI with details
       const errorType = this.getErrorType()
       const errorConfig = ERROR_BOUNDARY_MESSAGES[errorType]
       const { retryCount } = this.state
+      
+      // Only use custom fallback in production
+      if (this.props.fallback && process.env.NODE_ENV === 'production') {
+        return this.props.fallback
+      }
 
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+          <Card className="">
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
                 <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -155,21 +170,38 @@ export class ErrorBoundary extends Component<Props, State> {
               )}
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-900">
-                    Détails de l'erreur (développement)
-                  </summary>
-                  <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-40">
-                    <p className="text-red-600 font-semibold mb-2">
-                      {this.state.error.toString()}
-                    </p>
-                    {this.state.errorInfo?.componentStack && (
-                      <pre className="text-gray-700 whitespace-pre-wrap">
+                <div className="mt-4 space-y-3">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-red-800 mb-2">🚨 Development Error Details</h4>
+                    <div className="text-sm space-y-2">
+                      <div>
+                        <span className="font-medium text-red-700">Error:</span>
+                        <p className="text-red-600 font-mono text-xs mt-1 break-all">
+                          {this.state.error.toString()}
+                        </p>
+                      </div>
+                      {this.state.error.stack && (
+                        <div>
+                          <span className="font-medium text-red-700">Stack Trace:</span>
+                          <pre className="text-red-600 font-mono text-xs mt-1 whitespace-pre-wrap overflow-auto max-h-32 bg-red-100 p-2 rounded">
+                            {this.state.error.stack}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {this.state.errorInfo?.componentStack && (
+                    <details className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <summary className="cursor-pointer text-sm font-medium text-yellow-800 hover:text-yellow-900">
+                        📍 React Component Stack (click to expand)
+                      </summary>
+                      <pre className="mt-2 text-yellow-700 font-mono text-xs whitespace-pre-wrap overflow-auto max-h-32 bg-yellow-100 p-2 rounded">
                         {this.state.errorInfo.componentStack}
                       </pre>
-                    )}
-                  </div>
-                </details>
+                    </details>
+                  )}
+                </div>
               )}
 
               <div className="flex flex-col gap-2 pt-2">

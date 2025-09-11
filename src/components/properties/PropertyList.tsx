@@ -90,6 +90,23 @@ export function PropertyList({ properties, onEdit, onManageCalendar, onRefresh }
                 {getValidationStatusBadge(property.validation_status)}
               </div>
             </CardHeader>
+            
+            {property.images && property.images.length > 0 && (
+              <div className="px-6 pb-4">
+                <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={property.images[0]}
+                    alt={property.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-gray-600 line-clamp-3">

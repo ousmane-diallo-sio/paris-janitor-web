@@ -2,7 +2,11 @@
 export const envConfig = {
   supabase: {
     url: import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co',
-    apiKey: import.meta.env.VITE_SUPABASE_API_KEY || 'placeholder-api-key'
+    apiKey: import.meta.env.VITE_SUPABASE_API_KEY || 'placeholder-api-key',
+    imageBucket: {
+      accessKey: import.meta.env.VITE_SUPABASE_IMAGE_BUCKET_ACCESS_KEY || 'placeholder-access-key',
+      secretAccessKey: import.meta.env.VITE_SUPABASE_IMAGE_BUCKET_SECRET_ACCESS_KEY || 'placeholder-secret-access-key'
+    }
   },
   stripe: {
     publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder'
