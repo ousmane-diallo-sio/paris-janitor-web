@@ -149,6 +149,22 @@ export function TravelerDashboard() {
               </Button>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Services supplémentaires</CardTitle>
+              <CardDescription>
+                Réservez des services pour votre séjour
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/services">
+                <Button className="w-full">
+                  Catalogue de services
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="mt-8">

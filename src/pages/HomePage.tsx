@@ -36,6 +36,9 @@ export function HomePage() {
             </h1>
           </Link>
           <nav className="flex items-center space-x-4">
+            <Button asChild variant="outline">
+              <Link to="/services">Services</Link>
+            </Button>
             {user ? (
               <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200">
                 <Link to={getDashboardPath()}>Dashboard</Link>

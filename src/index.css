@@ -18,10 +18,10 @@
     --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 220 8% 97.5%;
+    --input: 220 8% 97.5%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --radius: 1rem;
   }
 
   .dark {
@@ -41,8 +41,8 @@
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 20%;
+    --input: 217.2 32.6% 20%;
     --ring: 224.3 76.3% 94.1%;
   }
 }
@@ -60,15 +60,48 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   *:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 0;
+    outline: 2px solid hsl(220 70% 75%);
+    outline-offset: 3px;
+    border-radius: 0.75rem;
   }
   
   *:focus:not(:focus-visible) {
     outline: none;
+  }
+  
+  /* Modern border styles - no double borders */
+  input, textarea, select {
+    border: 1px solid hsl(220 8% 92%);
+    background-color: hsl(0 0% 99%);
+    transition: all 0.3s ease;
+    margin: 2px; /* Add margin to account for border space */
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    border-color: hsl(220 70% 75%);
+    box-shadow: 0 0 0 3px hsl(220 70% 75% / 0.08);
+    background-color: hsl(0 0% 100%);
+  }
+  
+  /* Enhanced card styling */
+  .card, [role="dialog"], [role="menu"] {
+    border: 1px solid hsl(220 8% 96%);
+    background: hsl(0 0% 99.5%);
+    box-shadow: 
+      0 1px 2px -1px hsl(220 10% 85% / 0.4),
+      0 2px 4px -2px hsl(220 10% 85% / 0.3),
+      0 4px 8px -4px hsl(220 10% 85% / 0.2);
+    margin: 4px; /* Add margin to account for border space */
+  }
+  
+  /* Remove default browser button borders */
+  button, [type="button"], [type="submit"] {
+    border: none;
   }
   
   #features {
@@ -79,11 +112,82 @@
 @layer components {
   button, [type="button"], [type="submit"], [role="button"] {
     cursor: pointer;
-    transition: filter 0.15s, box-shadow 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none !important; /* Remove all button borders */
   }
+  
   button:hover, [type="button"]:hover, [type="submit"]:hover, [role="button"]:hover {
-    filter: brightness(0.97) saturate(1.1);
-    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+    transform: translateY(-0.5px);
+  }
+  
+  button:active, [type="button"]:active, [type="submit"]:active, [role="button"]:active {
+    transform: translateY(0px) scale(0.98);
+  }
+  
+  /* Remove double borders and add consistent styling */
+  .no-border {
+    border: none !important;
+  }
+  
+  /* Modern gradient backgrounds for enhanced visual appeal */
+  .gradient-rose {
+    background: linear-gradient(135deg, #fecaca 0%, #fda4af 100%);
+  }
+  
+  .gradient-orange {
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  }
+  
+  .gradient-teal {
+    background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
+  }
+  
+  .gradient-indigo {
+    background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+  }
+  
+  /* Glass morphism effect for cards */
+  .glass {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    box-shadow: 
+      0 8px 32px rgba(31, 38, 135, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  
+  /* Animated gradient utilities */
+  .bg-size-200 {
+    background-size: 200% 100%;
+  }
+  
+  .bg-pos-0 {
+    background-position: 0% 50%;
+  }
+  
+  .bg-pos-100 {
+    background-position: 100% 50%;
+  }
+  
+  /* Modern button styles */
+  .btn-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    padding: 12px 24px;
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 7px 25px rgba(0, 0, 0, 0.3),
+      0 3px 6px rgba(0, 0, 0, 0.15);
   }
   .container {
     width: 100%;

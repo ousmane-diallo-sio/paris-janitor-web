@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '../lib/supabase'
 import { handleAsyncOperation } from '../lib/error-handling'
-import { Calendar, Clock, Star, Euro, MapPin, CheckCircle, AlertCircle, Users, Wrench } from 'lucide-react'
+import { Calendar, Clock, Star, Euro, MapPin, CheckCircle, AlertCircle, Users, Wrench, Settings } from 'lucide-react'
+import ServiceManagement from '../components/common/ServiceManagement'
 
 interface ServiceRequest {
   id: string
@@ -51,6 +52,7 @@ export function ServiceProviderDashboard() {
     pendingRequests: 0
   })
   const [requestsLoading, setRequestsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'services'>('dashboard')
 
   const loadServiceRequests = useCallback(async () => {
     if (!user) return
@@ -267,8 +269,39 @@ export function ServiceProviderDashboard() {
         </div>
       </header>
 
+      {/* Tab Navigation */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'dashboard'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Tableau de bord
+            </button>
+            <button
+              onClick={() => setActiveTab('services')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'services'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Settings className="w-4 h-4 mr-2 inline" />
+              Mes Services
+            </button>
+          </nav>
+        </div>
+      </div>
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Performance Stats */}
+        {activeTab === 'dashboard' && (
+          <>
+            {/* Performance Stats */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -334,10 +367,17 @@ export function ServiceProviderDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => setActiveTab('services')}
+                >
                   Ajouter un service
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setActiveTab('services')}
+                >
                   Voir mes services
                 </Button>
               </div>
@@ -450,6 +490,12 @@ export function ServiceProviderDashboard() {
             </CardContent>
           </Card>
         </div>
+          </>
+        )}
+
+        {activeTab === 'services' && (
+          <ServiceManagement />
+        )}
       </main>
     </div>
   )

@@ -11,6 +11,8 @@ import { HomePage } from '@/pages/HomePage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { PropertySearchPage } from '@/pages/PropertySearchPage'
 import { PropertyDetailsPage } from '@/pages/PropertyDetailsPage'
+import ServiceCatalogPage from '@/pages/ServiceCatalogPage'
+
 import { Toaster } from '@/components/ui/sonner'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { NetworkStatusIndicator } from '@/components/NetworkStatus'
@@ -53,6 +55,7 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/search" element={<PropertySearchPage />} />
               <Route path="/property/:id" element={<PropertyDetailsPage />} />
+              <Route path="/services" element={<ServiceCatalogPage />} />
               
               {/* Protected routes - always rendered but with internal auth checks */}
               <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />

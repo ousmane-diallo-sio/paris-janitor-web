@@ -143,12 +143,39 @@ export const db = {
   },
 
   services: {
+    async getAll() {
+      const { data, error } = await supabase
+        .from('services')
+        .select(`
+          *,
+          profiles!provider_id(
+            id,
+            full_name,
+            email,
+            profile_validated,
+            vip_subscription
+          )
+        `)
+        .eq('is_active', true)
+        .eq('profiles.profile_validated', true)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      return data
+    },
+
     async getByCategory(category?: string) {
       let query = supabase
         .from('services')
         .select(`
           *,
-          profiles(full_name, profile_validated)
+          profiles!provider_id(
+            id,
+            full_name,
+            email,
+            profile_validated,
+            vip_subscription
+          )
         `)
         .eq('is_active', true)
         .eq('profiles.profile_validated', true)
@@ -160,7 +187,69 @@ export const db = {
       const { data, error } = await query.order('created_at', { ascending: false })
       
       if (error) throw error
-      return data as Service[]
+      return data
+    },
+
+    async search(searchQuery: string, filters?: { category?: string; priceRange?: { min: number; max: number } }) {
+      let query = supabase
+        .from('services')
+        .select(`
+          *,
+          profiles!provider_id(
+            id,
+            full_name,
+            email,
+            profile_validated,
+            vip_subscription
+          )
+        `)
+        .eq('is_active', true)
+        .eq('profiles.profile_validated', true)
+      
+      // Search in name and description
+      if (searchQuery) {
+        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+      }
+      
+      // Filter by category
+      if (filters?.category) {
+        query = query.eq('category', filters.category)
+      }
+      
+      // Filter by price range
+      if (filters?.priceRange) {
+        if (filters.priceRange.min) {
+          query = query.gte('base_price', filters.priceRange.min)
+        }
+        if (filters.priceRange.max) {
+          query = query.lte('base_price', filters.priceRange.max)
+        }
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false })
+      
+      if (error) throw error
+      return data
+    },
+
+    async getById(id: string) {
+      const { data, error } = await supabase
+        .from('services')
+        .select(`
+          *,
+          profiles!provider_id(
+            id,
+            full_name,
+            email,
+            profile_validated,
+            vip_subscription
+          )
+        `)
+        .eq('id', id)
+        .single()
+      
+      if (error) throw error
+      return data
     },
 
     async getByProviderId(providerId: string) {
@@ -172,6 +261,38 @@ export const db = {
       
       if (error) throw error
       return data as Service[]
+    },
+
+    async create(service: TablesInsert<'services'>) {
+      const { data, error } = await supabase
+        .from('services')
+        .insert(service)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data as Service
+    },
+
+    async update(id: string, updates: TablesUpdate<'services'>) {
+      const { data, error } = await supabase
+        .from('services')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data as Service
+    },
+
+    async delete(id: string) {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id)
+      
+      if (error) throw error
     }
   },
 
