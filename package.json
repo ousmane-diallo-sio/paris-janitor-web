@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "bun vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview",
     "gen-db-types": "source .env && bunx supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/supabase.ts"

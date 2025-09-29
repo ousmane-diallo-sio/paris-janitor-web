@@ -12,10 +12,12 @@ import { ProfilePage } from '@/pages/ProfilePage'
 import { PropertySearchPage } from '@/pages/PropertySearchPage'
 import { PropertyDetailsPage } from '@/pages/PropertyDetailsPage'
 import ServiceCatalogPage from '@/pages/ServiceCatalogPage'
+import PrivacyPage from '@/pages/PrivacyPage'
 
 import { Toaster } from '@/components/ui/sonner'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { NetworkStatusIndicator } from '@/components/NetworkStatus'
+import Footer from '@/components/common/Footer'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,14 +58,16 @@ function App() {
               <Route path="/search" element={<PropertySearchPage />} />
               <Route path="/property/:id" element={<PropertyDetailsPage />} />
               <Route path="/services" element={<ServiceCatalogPage />} />
-              
+              <Route path="/privacy" element={<PrivacyPage />} />
+
               {/* Protected routes - always rendered but with internal auth checks */}
               <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />
               <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
               <Route path="/dashboard/service-provider" element={<ServiceProviderDashboard />} />
-              
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <Footer />
           </div>
         </Router>
         <ReactQueryDevtools initialIsOpen={false} />
