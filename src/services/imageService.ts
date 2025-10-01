@@ -2,7 +2,6 @@ import { supabase } from '@/lib/supabase'
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-// Change this to 'image-bucket' if you want to use existing bucket
 const BUCKET_NAME = 'image-bucket'
 
 export interface ImageUploadResult {
@@ -44,12 +43,20 @@ export async function uploadPropertyImage(file: File, propertyId?: string): Prom
     throw new Error('Erreur lors du téléchargement de l\'image')
   }
 
-  const { data: { publicUrl } } = supabase.storage
+  // Use signed URL instead of public URL for private buckets
+  const { data: signedUrl, error: urlError } = await supabase.storage
     .from(BUCKET_NAME)
-    .getPublicUrl(data.path)
+    .createSignedUrl(data.path, 3600) // URL valid for 1 hour
+
+  if (urlError) {
+    console.error('Signed URL error:', urlError)
+    throw new Error('Erreur lors de la génération de l\'URL de l\'image')
+  }
+
+  console.log('Upload success:', { path: data.path, signedUrl })
 
   return {
-    url: publicUrl,
+    url: signedUrl.signedUrl,
     path: data.path
   }
 }

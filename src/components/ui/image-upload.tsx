@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -26,6 +26,11 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
     images.map(url => ({ url }))
   )
   const [isUploading, setIsUploading] = useState(false)
+
+  // Update imageItems when images prop changes (for editing existing properties)
+  useEffect(() => {
+    setImageItems(images.map(url => ({ url })))
+  }, [images])
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (imageItems.length + acceptedFiles.length > maxImages) {

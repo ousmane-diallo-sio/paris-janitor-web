@@ -103,7 +103,7 @@ export function PropertyOwnerDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Chargement...</p>
@@ -155,9 +155,9 @@ export function PropertyOwnerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-blue-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
@@ -290,11 +290,11 @@ export function PropertyOwnerDashboard() {
               </Card>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Liste des propriétés</CardTitle>
+            <Card className="bg-white/80 backdrop-blur-sm border-white/50 shadow-md">
+              <CardHeader className="border-b border-gray-100/50">
+                <CardTitle className="text-gray-800">Liste des propriétés</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="bg-white/50">
                 {propertiesLoading ? (
                   <div className="flex justify-center py-8">
                     <div className="text-gray-500">Chargement des propriétés...</div>
