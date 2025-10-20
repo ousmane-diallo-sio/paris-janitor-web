@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Search, MapPin, Calendar, Euro, Users, Wifi, Car, Coffee } from 'lucide-react'
+import { StorageImage } from '@/components/ui/storage-image'
 import type { Property } from '@/types/database'
 
 interface SearchFilters {
@@ -252,7 +253,7 @@ export function PropertySearchPage() {
                 <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="h-48 bg-gray-200 relative">
                     {property.images && property.images.length > 0 ? (
-                      <img
+                      <StorageImage
                         src={property.images[0]}
                         alt={property.title}
                         className="w-full h-full object-cover"

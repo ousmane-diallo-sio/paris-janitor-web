@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Upload, X, Image as ImageIcon, AlertCircle, RefreshCw, AlertTriangle } from 'lucide-react'
-import { uploadPropertyImage, compressImage, validateImageFile } from '@/services/imageService'
+import { uploadPropertyImage, compressImage, validateImageFile, getSignedUrl } from '@/services/imageService'
 import { toast } from 'sonner'
 
 interface ImageUploadProps {
@@ -22,14 +22,38 @@ interface ImageItem {
 }
 
 export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId }: ImageUploadProps) {
-  const [imageItems, setImageItems] = useState<ImageItem[]>(
-    images.map(url => ({ url }))
-  )
+  const [imageItems, setImageItems] = useState<ImageItem[]>([])
   const [isUploading, setIsUploading] = useState(false)
 
-  // Update imageItems when images prop changes (for editing existing properties)
+  // Resolve images prop (which may contain stored paths or absolute URLs) to fresh URLs
   useEffect(() => {
-    setImageItems(images.map(url => ({ url })))
+    let mounted = true
+
+    const resolveImages = async () => {
+      const resolved: ImageItem[] = []
+
+      for (const img of images) {
+        try {
+          // If the image looks like a storage path (no protocol), generate signed URL
+          if (!img.startsWith('http')) {
+            const signed = await getSignedUrl(img)
+            resolved.push({ url: signed })
+          } else {
+            resolved.push({ url: img })
+          }
+        } catch (err) {
+          console.error('Error resolving image URL', err)
+          // push a placeholder entry to keep indexes stable
+          resolved.push({ url: '' , hasError: true, errorMessage: 'Impossible de charger l\'image' })
+        }
+      }
+
+      if (mounted) setImageItems(resolved)
+    }
+
+    resolveImages()
+
+    return () => { mounted = false }
   }, [images])
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -61,7 +85,8 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
         setImageItems(prev => [...prev, tempItem])
 
         const result = await uploadPropertyImage(compressedFile, propertyId)
-        
+
+        // Replace temp item with a signed URL for display, but store the path in parent state
         setImageItems(prev => 
           prev.map(item => 
             item.file === compressedFile 
@@ -70,7 +95,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
           )
         )
 
-        const newImages = [...images, result.url]
+        const newImages = [...images, result.path]
         onImagesChange(newImages)
         
         toast.success('Image téléchargée avec succès')
@@ -132,8 +157,8 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
         )
       )
 
-      const newImages = [...images, result.url]
-      onImagesChange(newImages)
+  const newImages = [...images, result.path]
+  onImagesChange(newImages)
       
       toast.success('Image téléchargée avec succès')
     } catch (error) {

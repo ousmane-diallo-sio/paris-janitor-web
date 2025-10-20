@@ -61,6 +61,19 @@ export async function uploadPropertyImage(file: File, propertyId?: string): Prom
   }
 }
 
+export async function getSignedUrl(path: string, expires = 3600): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .createSignedUrl(path, expires)
+
+  if (error) {
+    console.error('Get signed URL error:', error)
+    throw new Error('Erreur lors de la génération de l\'URL signée')
+  }
+
+  return data.signedUrl
+}
+
 export async function deletePropertyImage(imagePath: string): Promise<void> {
   const { error } = await supabase.storage
     .from(BUCKET_NAME)

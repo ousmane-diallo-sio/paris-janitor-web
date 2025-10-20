@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { getSignedUrl } from '@/services/imageService'
 import { notify, logError } from '@/lib/error-handling'
 import type { Property } from '@/types/database'
 
@@ -27,6 +28,7 @@ interface PropertyListProps {
 // Image carousel component
 function ImageCarousel({ images, alt }: { images: string[], alt: string }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [resolvedImages, setResolvedImages] = useState<string[]>(images.map(i => i))
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
@@ -35,6 +37,36 @@ function ImageCarousel({ images, alt }: { images: string[], alt: string }) {
   const goToNext = () => {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
   }
+
+  // Resolve any storage paths to fresh signed URLs
+  useEffect(() => {
+    let mounted = true
+
+    const resolve = async () => {
+      const out: string[] = []
+      for (const img of images) {
+        try {
+          if (!img || img.startsWith('http')) {
+            out.push(img)
+          } else {
+            const signed = await getSignedUrl(img)
+            out.push(signed)
+          }
+        } catch (err) {
+          console.error('Failed to resolve image', img, err)
+          out.push('')
+        }
+      }
+      if (mounted) {
+        setResolvedImages(out)
+        setCurrentIndex(0)
+      }
+    }
+
+    resolve()
+
+    return () => { mounted = false }
+  }, [images])
 
   if (images.length === 0) {
     // Placeholder for properties without images
@@ -56,7 +88,7 @@ function ImageCarousel({ images, alt }: { images: string[], alt: string }) {
     return (
       <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden">
         <img
-          src={images[0]}
+          src={resolvedImages[0] || images[0]}
           alt={alt}
           className="w-full h-full object-cover"
           onError={(e) => {
@@ -71,7 +103,7 @@ function ImageCarousel({ images, alt }: { images: string[], alt: string }) {
   return (
     <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden group">
       <img
-        src={images[currentIndex]}
+        src={resolvedImages[currentIndex] || images[currentIndex]}
         alt={`${alt} - Image ${currentIndex + 1}`}
         className="w-full h-full object-cover transition-opacity duration-300"
         onError={(e) => {

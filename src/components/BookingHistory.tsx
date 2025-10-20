@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/badge'
 import { supabase } from '../lib/supabase'
 import { handleAsyncOperation } from '../lib/error-handling'
 import { Calendar, MapPin, CreditCard } from 'lucide-react'
+import { StorageImage } from '@/components/ui/storage-image'
 
 interface Booking {
   id: string
@@ -147,8 +148,8 @@ export function BookingHistoryComponent() {
             <div className="flex flex-col md:flex-row">
               <div className="md:w-48 aspect-video md:aspect-square bg-gray-200">
                 {booking.property.images && booking.property.images.length > 0 ? (
-                  <img 
-                    src={booking.property.images[0]} 
+                  <StorageImage
+                    src={booking.property.images[0]}
                     alt={booking.property.title}
                     className="w-full h-full object-cover"
                   />

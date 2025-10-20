@@ -22,6 +22,7 @@ import {
   Coffee,
   Tv
 } from 'lucide-react'
+import { StorageImage } from '@/components/ui/storage-image'
 import type { Property } from '@/types/database'
 
 interface BookingData {
@@ -272,27 +273,19 @@ export function PropertyDetailsPage() {
             {/* Image Gallery */}
             {property.images && property.images.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="md:col-span-2">
-                  <img
-                    src={property.images[0]}
-                    alt={property.title}
-                    className="w-full h-96 object-cover rounded-lg"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.style.display = 'none'
-                    }}
-                  />
-                </div>
+                    <div className="md:col-span-2">
+                      <StorageImage
+                        src={property.images[0]}
+                        alt={property.title}
+                        className="w-full h-96 object-cover rounded-lg"
+                      />
+                    </div>
                 {property.images.slice(1, 5).map((image, index) => (
                   <div key={index} className="relative">
-                    <img
+                    <StorageImage
                       src={image}
                       alt={`${property.title} - Image ${index + 2}`}
                       className="w-full h-48 object-cover rounded-lg"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                      }}
                     />
                     {index === 3 && property.images && property.images.length > 5 && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">

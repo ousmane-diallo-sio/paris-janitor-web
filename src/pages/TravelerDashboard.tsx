@@ -2,6 +2,7 @@ import { Navigate, Link } from 'react-router-dom'
 import { useEffect, useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
+import { StorageImage } from '@/components/ui/storage-image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '../lib/supabase'
 import { handleAsyncOperation } from '../lib/error-handling'
@@ -191,8 +192,8 @@ export function TravelerDashboard() {
                     <Card key={property.id} className="cursor-pointer hover:shadow-md transition-shadow">
                       <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                         {property.images && property.images.length > 0 ? (
-                          <img 
-                            src={property.images[0]} 
+                          <StorageImage
+                            src={property.images[0]}
                             alt={property.title}
                             className="w-full h-full object-cover"
                           />
