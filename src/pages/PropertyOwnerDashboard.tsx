@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PropertyForm } from '@/components/properties/PropertyForm'
 import { PropertyList } from '@/components/properties/PropertyList'
-import { PropertyCalendar } from '@/components/calendar/PropertyCalendar'
+import { UserCalendar } from '@/components/calendar/UserCalendar'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { calculateOwnerMetrics, formatRevenue, formatOccupationRate, type OwnerMetrics } from '@/services/metricsService'
@@ -168,9 +168,9 @@ export function PropertyOwnerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
+    <div className="min-h-screen bg-gray-50">
+        <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white overflow-hidden">
+          <div className="absolute inset-0 bg-black/5"></div>
         <div className="relative">
           <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex justify-between items-center">
@@ -214,20 +214,20 @@ export function PropertyOwnerDashboard() {
                 <Button
                   onClick={handleManageFinances}
                   variant="outline"
-                  className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 px-6 py-3"
+                  className="rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 px-6 py-3"
                 >
                   Gestion financière
                 </Button>
                 <Button
                   onClick={handleGenerateQuotes}
                   variant="outline"
-                  className="rounded-xl border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 px-6 py-3"
+                  className="rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 px-6 py-3"
                 >
                   Générer un devis
                 </Button>
                 <Button
                   onClick={handleAddProperty}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl px-6 py-3 font-medium"
+                  className="bg-gradient-to-r from-[#62cff4] to-[#2c67f2] hover:from-[#4fb8e8] hover:to-[#1e4fd4] text-white rounded-lg px-6 py-3 font-medium"
                 >
                   Ajouter une propriété
                 </Button>
@@ -235,69 +235,69 @@ export function PropertyOwnerDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
-                    <Building className="h-4 w-4" />
-                    <span>Propriétés totales</span>
-                  </CardTitle>
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Propriétés totales</CardTitle>
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Building className="h-4 w-4 text-blue-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-gray-900">
                     {metricsLoading ? '...' : metrics.totalProperties}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500">
                     {metricsLoading ? 'Chargement...' : 'Total de vos biens'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Propriétés approuvées</CardTitle>
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Propriétés approuvées</span>
-                  </CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-green-600">
                     {metricsLoading ? '...' : metrics.approvedProperties}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500">
                     {metricsLoading ? 'Chargement...' : 'Validées par PJ'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Revenus ce mois</CardTitle>
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Euro className="h-4 w-4 text-blue-600" />
-                    <span>Revenus ce mois</span>
-                  </CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-blue-600">
                     {metricsLoading ? '...' : formatRevenue(metrics.monthlyRevenue)}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500">
                     {metricsLoading ? 'Chargement...' : 'Commissions perçues'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Taux d'occupation</CardTitle>
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                     <TrendingUp className="h-4 w-4 text-purple-600" />
-                    <span>Taux d'occupation</span>
-                  </CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-purple-600">
+                  <div className="text-2xl font-bold text-purple-600">
                     {metricsLoading ? '...' : formatOccupationRate(metrics.occupationRate)}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500">
                     {metricsLoading ? 'Chargement...' : 'Ce mois-ci'}
                   </p>
                 </CardContent>
@@ -382,8 +382,9 @@ export function PropertyOwnerDashboard() {
               </h2>
             </div>
 
-            <PropertyCalendar
+            <UserCalendar
               property={editingProperty}
+              mode="property"
               onRefresh={handleRefresh}
             />
           </div>

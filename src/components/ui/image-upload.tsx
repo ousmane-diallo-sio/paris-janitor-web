@@ -3,14 +3,14 @@ import { useDropzone } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Upload, X, Image as ImageIcon, AlertCircle, RefreshCw, AlertTriangle } from 'lucide-react'
-import { uploadPropertyImage, compressImage, validateImageFile, getSignedUrl } from '@/services/imageService'
+import { uploadImage, compressImage, validateImageFile, getSignedUrl, type UploadImageType } from '@/services/imageService'
 import { toast } from 'sonner'
 
 interface ImageUploadProps {
   images: string[]
   onImagesChange: (images: string[]) => void
   maxImages?: number
-  propertyId?: string
+  type: UploadImageType
 }
 
 interface ImageItem {
@@ -21,7 +21,7 @@ interface ImageItem {
   errorMessage?: string
 }
 
-export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId }: ImageUploadProps) {
+export function ImageUpload({ images, onImagesChange, maxImages = 5, type }: ImageUploadProps) {
   const [imageItems, setImageItems] = useState<ImageItem[]>([])
   const [isUploading, setIsUploading] = useState(false)
 
@@ -84,7 +84,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
         
         setImageItems(prev => [...prev, tempItem])
 
-        const result = await uploadPropertyImage(compressedFile, propertyId)
+        const result = await uploadImage(compressedFile, type)
 
         // Replace temp item with a signed URL for display, but store the path in parent state
         setImageItems(prev => 
@@ -122,7 +122,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
     }
     
     setIsUploading(false)
-  }, [imageItems.length, maxImages, propertyId, images, onImagesChange])
+  }, [imageItems.length, maxImages, type, images, onImagesChange])
 
   const removeImage = (index: number) => {
     const newImageItems = imageItems.filter((_, i) => i !== index)
@@ -147,7 +147,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
     )
 
     try {
-      const result = await uploadPropertyImage(item.file, propertyId)
+      const result = await uploadImage(item.file, type)
       
       setImageItems(prev => 
         prev.map((img, i) => 

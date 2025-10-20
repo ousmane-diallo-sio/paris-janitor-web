@@ -379,7 +379,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
                 images={images}
                 onImagesChange={setImages}
                 maxImages={5}
-                propertyId={property?.id}
+                type='properties'
               />
             </div>
 

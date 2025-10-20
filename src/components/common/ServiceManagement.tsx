@@ -667,7 +667,7 @@ export const ServiceManagement: React.FC<ServiceManagementProps> = ({
                 images={images}
                 onImagesChange={setImages}
                 maxImages={1}
-                propertyId={editingService?.id}
+                type="services"
               />
             </div>
 

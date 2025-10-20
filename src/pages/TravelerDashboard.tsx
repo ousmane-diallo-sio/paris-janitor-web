@@ -97,9 +97,9 @@ export function TravelerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="absolute inset-0 bg-black/5"></div>
         <div className="relative">
           <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex justify-between items-center">
@@ -109,11 +109,11 @@ export function TravelerDashboard() {
               </div>
               <div className="flex items-center space-x-4">
                 <Link to="/profile">
-                  <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                  <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg">
                     Mon profil
                   </Button>
                 </Link>
-                <Button variant="outline" onClick={signOut} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <Button variant="outline" onClick={signOut} className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg">
                   Se déconnecter
                 </Button>
               </div>
@@ -189,7 +189,7 @@ export function TravelerDashboard() {
               <p className="text-gray-600 mt-2">Découvrez nos meilleures offres du moment</p>
             </div>
             <Link to="/search">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" className="flex items-center gap-2 rounded-lg border-gray-300 hover:bg-gray-50">
                 Voir tout
                 <span>→</span>
               </Button>
@@ -221,7 +221,7 @@ export function TravelerDashboard() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {properties.map((property) => (
                 <Link key={property.id} to={`/property/${property.id}`}>
-                  <Card className="group cursor-pointer bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <Card className="group cursor-pointer bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
                     <div className="aspect-[4/3] relative overflow-hidden">
                       {property.images && property.images.length > 0 ? (
                         <StorageImage

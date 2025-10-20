@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { handleAsyncOperation } from '../lib/error-handling'
 import { Calendar, Clock, Star, Euro, MapPin, CheckCircle, AlertCircle, Users, Wrench, Settings } from 'lucide-react'
 import ServiceManagement from '../components/common/ServiceManagement'
+import { UserCalendar } from '../components/calendar/UserCalendar'
 
 interface ServiceRequest {
   id: string
@@ -52,7 +53,7 @@ export function ServiceProviderDashboard() {
     pendingRequests: 0
   })
   const [requestsLoading, setRequestsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'services'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'planning'>('dashboard')
 
   const loadServiceRequests = useCallback(async () => {
     if (!user) return
@@ -144,8 +145,8 @@ export function ServiceProviderDashboard() {
     await handleAsyncOperation(
       async () => {
         const pendingCount = serviceRequests.filter(r => r.status === 'pending').length
-        const completedThisMonth = serviceRequests.filter(r => 
-          r.status === 'completed' && 
+        const completedThisMonth = serviceRequests.filter(r =>
+          r.status === 'completed' &&
           r.created_at &&
           new Date(r.created_at).getMonth() === new Date().getMonth()
         ).length
@@ -185,7 +186,7 @@ export function ServiceProviderDashboard() {
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
     const IconComponent = config.icon
-    
+
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <IconComponent className="h-3 w-3" />
@@ -214,8 +215,8 @@ export function ServiceProviderDashboard() {
 
         if (error) throw error
 
-        setServiceRequests(prev => 
-          prev.map(req => 
+        setServiceRequests(prev =>
+          prev.map(req =>
             req.id === requestId ? { ...req, status: newStatus } : req
           )
         )
@@ -281,24 +282,32 @@ export function ServiceProviderDashboard() {
           <nav className="flex">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${
-                activeTab === 'dashboard'
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'dashboard'
                   ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
             >
               Tableau de bord
             </button>
             <button
               onClick={() => setActiveTab('services')}
-              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${
-                activeTab === 'services'
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'services'
                   ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <Settings className="w-4 h-4 mr-2 inline" />
               Mes Services
+            </button>
+            <button
+              onClick={() => setActiveTab('planning')}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'planning'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+              <Calendar className="w-4 h-4 mr-2 inline" />
+              Planning
             </button>
           </nav>
         </div>
@@ -378,14 +387,14 @@ export function ServiceProviderDashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button 
+                  <Button
                     className="w-full bg-gradient-to-r from-[#62cff4] to-[#2c67f2] hover:from-[#4fb8e8] hover:to-[#1e4fd4] text-white font-medium py-2.5 rounded-lg"
                     onClick={() => setActiveTab('services')}
                   >
                     Ajouter un service
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full rounded-lg border-gray-300 hover:bg-gray-50 py-2.5"
                     onClick={() => setActiveTab('services')}
                   >
@@ -402,10 +411,10 @@ export function ServiceProviderDashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-2.5 rounded-lg">
-                    Modifier mes créneaux
-                  </Button>
-                  <Button variant="outline" className="w-full rounded-lg border-gray-300 hover:bg-gray-50 py-2.5">
+                  <Button
+                    className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-2.5 rounded-lg"
+                    onClick={() => setActiveTab('planning')}
+                  >
                     Voir le planning
                   </Button>
                 </CardContent>
@@ -495,7 +504,7 @@ export function ServiceProviderDashboard() {
                         </CardContent>
                       </Card>
                     ))}
-                    
+
                     {serviceRequests.length > 3 && (
                       <div className="text-center pt-4">
                         <Button variant="outline" className="rounded-lg border-gray-300 hover:bg-gray-50 px-4 py-2">
@@ -516,6 +525,17 @@ export function ServiceProviderDashboard() {
               <ServiceManagement />
             </div>
           </div>
+        )}
+
+        {activeTab === 'planning' && (
+          <UserCalendar
+            providerId={user?.id}
+            mode="provider"
+            onRefresh={() => {
+              // Refresh callback if needed for service provider specific data
+              console.log('Calendar refreshed for service provider')
+            }}
+          />
         )}
       </main>
     </div>

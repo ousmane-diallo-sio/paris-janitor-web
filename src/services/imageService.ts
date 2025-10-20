@@ -21,15 +21,17 @@ export function validateImageFile(file: File): string | null {
   return null
 }
 
-export async function uploadPropertyImage(file: File, propertyId?: string): Promise<ImageUploadResult> {
+export type UploadImageType = "properties" | "services"
+
+export async function uploadImage(file: File, uploadType: UploadImageType): Promise<ImageUploadResult> {
   const validationError = validateImageFile(file)
   if (validationError) {
     throw new Error(validationError)
   }
 
   const fileExt = file.name.split('.').pop()
-  const fileName = `${propertyId || 'temp'}-${Date.now()}.${fileExt}`
-  const filePath = `properties/${fileName}`
+  const fileName = `${uploadType}-${Date.now()}.${fileExt}`
+  const filePath = `${uploadType}/${fileName}`
 
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
