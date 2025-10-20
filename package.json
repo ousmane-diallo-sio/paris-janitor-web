@@ -29,6 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "html2pdf.js": "^0.12.1",
     "lucide-react": "^0.542.0",
     "react": "^19.1.1",
     "react-big-calendar": "^1.19.4",

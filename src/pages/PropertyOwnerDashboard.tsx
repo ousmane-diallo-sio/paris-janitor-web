@@ -5,21 +5,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PropertyForm } from '@/components/properties/PropertyForm'
 import { PropertyList } from '@/components/properties/PropertyList'
 import { UserCalendar } from '@/components/calendar/UserCalendar'
+import { FinancialDashboard } from '@/components/financial/FinancialDashboard'
+import { QuoteGenerator } from '@/components/quotes/QuoteGenerator'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { calculateOwnerMetrics, formatRevenue, formatOccupationRate, type OwnerMetrics } from '@/services/metricsService'
 import type { Property } from '@/types/database'
 import { getSignedUrl } from '../services/imageService'
-import { Building, CheckCircle, Euro, TrendingUp } from 'lucide-react'
+import { Building, CheckCircle, Euro, TrendingUp, Home, BarChart3, FileText } from 'lucide-react'
 
-type ViewMode = 'list' | 'add' | 'edit' | 'calendar' | 'financial' | 'quotes'
+type ViewMode = 'dashboard' | 'calendar' | 'finances' | 'quotes';
 
 export function PropertyOwnerDashboard() {
   const { user, signOut, loading } = useAuthStore()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const view = searchParams.get('view') as ViewMode || 'list'
+  const view = searchParams.get('view') as ViewMode || 'dashboard'
   const propertyId = searchParams.get('propertyId')
+  const [activeTab, setActiveTab] = useState<ViewMode>(view)
+  const [showPropertyForm, setShowPropertyForm] = useState(false)
+
+  useEffect(() => {
+    setActiveTab(view)
+  }, [view])
 
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
   const [properties, setProperties] = useState<Property[]>([])
@@ -134,37 +142,41 @@ export function PropertyOwnerDashboard() {
   }
 
   const handleAddProperty = () => {
-    setSearchParams({ view: 'add' })
+    setShowPropertyForm(true)
+    setEditingProperty(null)
   }
 
   const handleEditProperty = (property: Property) => {
-    setSearchParams({ view: 'edit', propertyId: property.id })
+    setShowPropertyForm(true)
+    setEditingProperty(property)
+    setSearchParams({ view: 'calendar', propertyId: property.id })
   }
 
   const handleManageCalendar = (property: Property) => {
+    setActiveTab('calendar')
     setSearchParams({ view: 'calendar', propertyId: property.id })
   }
 
   const handleFormSuccess = () => {
+    setShowPropertyForm(false)
+    setEditingProperty(null)
     setSearchParams({})
     loadProperties()
     loadMetrics()
   }
 
   const handleFormCancel = () => {
-    window.history.back()
+    setShowPropertyForm(false)
+    setEditingProperty(null)
   }
 
-  const handleBackToList = () => {
-    window.history.back()
-  }
-
-  const handleManageFinances = () => {
-    setSearchParams({ view: 'financial' })
-  }
-
-  const handleGenerateQuotes = () => {
-    setSearchParams({ view: 'quotes' })
+  const handleTabChange = (tab: ViewMode) => {
+    setActiveTab(tab)
+    if (tab === 'dashboard') {
+      setSearchParams({})
+    } else {
+      setSearchParams({ view: tab })
+    }
   }
 
   return (
@@ -197,240 +209,226 @@ export function PropertyOwnerDashboard() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {view === 'list' && (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg overflow-hidden">
+          <nav className="flex">
+            <button
+              onClick={() => handleTabChange('dashboard')}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'dashboard'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+              <Home className="w-4 h-4 mr-2 inline" />
+              Tableau de bord
+            </button>
+            <button
+              onClick={() => handleTabChange('finances')}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'finances'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+              <BarChart3 className="w-4 h-4 mr-2 inline" />
+              Finances
+            </button>
+            <button
+              onClick={() => handleTabChange('quotes')}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'quotes'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+              <FileText className="w-4 h-4 mr-2 inline" />
+              Devis
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'dashboard' && (
           <div className="space-y-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">
-                  Mes propriétés
-                </h2>
-                <p className="text-lg text-gray-600 mt-2">
-                  Gérez vos propriétés et suivez leurs performances
-                </p>
-              </div>
-              <div className="flex space-x-4">
-                <Button
-                  onClick={handleManageFinances}
-                  variant="outline"
-                  className="rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 px-6 py-3"
-                >
-                  Gestion financière
-                </Button>
-                <Button
-                  onClick={handleGenerateQuotes}
-                  variant="outline"
-                  className="rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 px-6 py-3"
-                >
-                  Générer un devis
-                </Button>
-                <Button
-                  onClick={handleAddProperty}
-                  className="bg-gradient-to-r from-[#62cff4] to-[#2c67f2] hover:from-[#4fb8e8] hover:to-[#1e4fd4] text-white rounded-lg px-6 py-3 font-medium"
-                >
-                  Ajouter une propriété
-                </Button>
-              </div>
-            </div>
+            {!showPropertyForm ? (
+              <>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Mes propriétés
+                    </h2>
+                    <p className="text-lg text-gray-600 mt-2">
+                      Gérez vos propriétés et suivez leurs performances
+                    </p>
+                  </div>
+                  <div className="flex space-x-4">
+                    <Button
+                      onClick={handleAddProperty}
+                      className="bg-gradient-to-r from-[#62cff4] to-[#2c67f2] hover:from-[#4fb8e8] hover:to-[#1e4fd4] text-white rounded-lg px-6 py-3 font-medium"
+                    >
+                      Ajouter une propriété
+                    </Button>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Propriétés totales</CardTitle>
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Building className="h-4 w-4 text-blue-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {metricsLoading ? '...' : metrics.totalProperties}
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {metricsLoading ? 'Chargement...' : 'Total de vos biens'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Propriétés approuvées</CardTitle>
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {metricsLoading ? '...' : metrics.approvedProperties}
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {metricsLoading ? 'Chargement...' : 'Validées par PJ'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Revenus ce mois</CardTitle>
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Euro className="h-4 w-4 text-blue-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {metricsLoading ? '...' : formatRevenue(metrics.monthlyRevenue)}
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {metricsLoading ? 'Chargement...' : 'Commissions perçues'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Taux d'occupation</CardTitle>
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 text-purple-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {metricsLoading ? '...' : formatOccupationRate(metrics.occupationRate)}
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {metricsLoading ? 'Chargement...' : 'Ce mois-ci'}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
-              <CardHeader className="border-b border-gray-100 pb-6">
-                <CardTitle className="text-2xl font-semibold text-gray-900">Liste des propriétés</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                {propertiesLoading ? (
-                  <div className="flex justify-center py-12">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto"></div>
-                      <p className="mt-4 text-gray-600">Chargement des propriétés...</p>
-                    </div>
-                  </div>
-                ) : error ? (
-                  <Card className="rounded-2xl border-red-200 bg-red-50">
-                    <CardContent className="p-6 text-center">
-                      <p className="text-red-700 mb-4">{error}</p>
-                      <Button
-                        onClick={loadProperties}
-                        variant="outline"
-                        className="rounded-xl border-red-300 text-red-700 hover:bg-red-100"
-                      >
-                        Réessayer
-                      </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                  <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-600">Propriétés totales</CardTitle>
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Building className="h-4 w-4 text-blue-600" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {metricsLoading ? '...' : metrics.totalProperties}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {metricsLoading ? 'Chargement...' : 'Total de vos biens'}
+                      </p>
                     </CardContent>
                   </Card>
-                ) : (
-                  <PropertyList
-                    properties={properties}
-                    onEdit={handleEditProperty}
-                    onManageCalendar={handleManageCalendar}
-                    onRefresh={handleRefresh}
-                  />
-                )}
-              </CardContent>
-            </Card>
+
+                  <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-600">Propriétés approuvées</CardTitle>
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {metricsLoading ? '...' : metrics.approvedProperties}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {metricsLoading ? 'Chargement...' : 'Validées par PJ'}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-600">Revenus ce mois</CardTitle>
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Euro className="h-4 w-4 text-blue-600" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {metricsLoading ? '...' : formatRevenue(metrics.monthlyRevenue)}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {metricsLoading ? 'Chargement...' : 'Commissions perçues'}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-600">Taux d'occupation</CardTitle>
+                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="h-4 w-4 text-purple-600" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {metricsLoading ? '...' : formatOccupationRate(metrics.occupationRate)}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {metricsLoading ? 'Chargement...' : 'Ce mois-ci'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
+                  <CardHeader className="border-b border-gray-100 pb-6">
+                    <CardTitle className="text-2xl font-semibold text-gray-900">Liste des propriétés</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {propertiesLoading ? (
+                      <div className="flex justify-center py-12">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto"></div>
+                          <p className="mt-4 text-gray-600">Chargement des propriétés...</p>
+                        </div>
+                      </div>
+                    ) : error ? (
+                      <Card className="rounded-2xl border-red-200 bg-red-50">
+                        <CardContent className="p-6 text-center">
+                          <p className="text-red-700 mb-4">{error}</p>
+                          <Button
+                            onClick={loadProperties}
+                            variant="outline"
+                            className="rounded-xl border-red-300 text-red-700 hover:bg-red-100"
+                          >
+                            Réessayer
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <PropertyList
+                        properties={properties}
+                        onEdit={handleEditProperty}
+                        onManageCalendar={handleManageCalendar}
+                        onRefresh={handleRefresh}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <div className="space-y-6">
+
+
+                    <PropertyForm
+                      property={editingProperty}
+                      onSuccess={handleFormSuccess}
+                      onCancel={handleFormCancel}
+                    />
+
+
+              </div>
+            )}
           </div>
         )}
 
-        {(view === 'add' || view === 'edit') && (
+        {activeTab === 'finances' && (
+          <FinancialDashboard ownerId={user!.id} />
+        )}
+
+        {activeTab === 'quotes' && (
+          <QuoteGenerator ownerId={user!.id} />
+        )}
+
+        {activeTab === 'calendar' && editingProperty && (
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
               <Button
                 variant="outline"
-                onClick={handleFormCancel}
+                onClick={() => handleTabChange('dashboard')}
               >
-                ← Retour à la liste
+                ← Retour au tableau de bord
               </Button>
               <h2 className="text-xl font-semibold text-gray-900">
-                {view === 'add' ? 'Ajouter une propriété' : 'Modifier la propriété'}
+                Calendrier - {editingProperty.title}
               </h2>
             </div>
 
-            <Card>
+            <Card className="bg-white border border-gray-200 rounded-xl">
               <CardContent className="p-6">
-                <PropertyForm
+                <UserCalendar
                   property={editingProperty}
-                  onSuccess={handleFormSuccess}
-                  onCancel={handleFormCancel}
+                  mode="property"
+                  onRefresh={() => {
+                    loadProperties()
+                    loadMetrics()
+                  }}
                 />
               </CardContent>
             </Card>
           </div>
         )}
-
-        {view === 'calendar' && editingProperty && (
-          <div className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={handleBackToList}
-              >
-                ← Retour à la liste
-              </Button>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Gestion du calendrier
-              </h2>
-            </div>
-
-            <UserCalendar
-              property={editingProperty}
-              mode="property"
-              onRefresh={handleRefresh}
-            />
-          </div>
-        )}
-
-        {view === 'financial' && (
-          <div className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={handleBackToList}
-              >
-                ← Retour à la liste
-              </Button>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Gestion financière
-              </h2>
-            </div>
-
-            {/* <FinancialDashboard ownerId={user!.id} /> */}
-          </div>
-        )}
-
-        {view === 'quotes' && (
-          <div className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={handleBackToList}
-              >
-                ← Retour à la liste
-              </Button>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Génération de devis
-              </h2>
-            </div>
-
-            {/* <ServiceQuoteGenerator 
-              ownerId={user!.id}
-              onQuoteGenerated={(quote) => {
-                console.log('Quote generated:', quote)
-              }}
-            /> */}
-          </div>
-        )}
       </main>
     </div>
-  )
-}
+  );
+};

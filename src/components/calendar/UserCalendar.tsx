@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { CalendarIcon, Plus } from 'lucide-react'
 import { 
   getPropertyCalendarEvents, 
+  getProviderCalendarEvents,
   setPropertyAvailability, 
   type CalendarEvent 
 } from '@/services/calendarService'
@@ -64,8 +65,7 @@ export function UserCalendar({ property, providerId, mode, onRefresh }: Property
         const calendarEvents = await getPropertyCalendarEvents(property.id, startDate, endDate)
         setEvents(calendarEvents)
       } else if (mode === 'provider' && providerId) {
-        // TODO: Implement getProviderCalendarEvents
-        const calendarEvents: CalendarEvent[] = []
+        const calendarEvents = await getProviderCalendarEvents(providerId, startDate, endDate)
         setEvents(calendarEvents)
       }
     } catch (error) {

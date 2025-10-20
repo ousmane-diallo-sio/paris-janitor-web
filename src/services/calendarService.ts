@@ -268,3 +268,178 @@ export function getDateRange(start: Date, end: Date): Date[] {
   
   return dates
 }
+
+/**
+ * Get provider availability data
+ * Note: For now, we'll store availability in a separate table in the future
+ * @param _providerId - Service provider ID (unused for now)
+ * @returns Array of availability periods
+ */
+export async function getProviderAvailability(_providerId: string): Promise<AvailabilityPeriod[]> {
+  try {
+    return []
+  } catch (error) {
+    console.error('Error fetching provider availability:', error)
+    return []
+  }
+}
+
+/**
+ * Update provider availability calendar
+ * Note: For now, we'll store availability in a separate table in the future
+ * @param _providerId - Service provider ID (unused for now)
+ * @param _periods - Array of availability periods (unused for now)
+ */
+export async function updateProviderAvailability(
+  _providerId: string,
+  _periods: AvailabilityPeriod[]
+): Promise<void> {
+  try {
+    console.log('Provider availability update not implemented yet')
+  } catch (error) {
+    console.error('Error updating provider availability:', error)
+    throw error
+  }
+}
+
+/**
+ * Get calendar events for a service provider (service requests + availability)
+ * @param providerId - Service provider ID
+ * @param startDate - Start date for the range
+ * @param endDate - End date for the range
+ * @returns Array of calendar events
+ */
+export async function getProviderCalendarEvents(
+  providerId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<CalendarEvent[]> {
+  try {
+    const events: CalendarEvent[] = []
+
+    const { data: serviceRequests, error: requestsError } = await supabase
+      .from('service_requests')
+      .select(`
+        id,
+        status,
+        scheduled_date,
+        total_amount,
+        service_id,
+        property_id,
+        notes
+      `)
+      .eq('provider_id', providerId)
+      .in('status', ['confirmed', 'in_progress', 'completed'])
+      .gte('scheduled_date', startDate.toISOString())
+      .lte('scheduled_date', endDate.toISOString())
+
+    if (requestsError) throw requestsError
+
+    if (serviceRequests) {
+      for (const request of serviceRequests) {
+        if (!request.scheduled_date) continue
+        
+        const scheduledDate = parseISO(request.scheduled_date)
+        const endDate = new Date(scheduledDate)
+        endDate.setHours(scheduledDate.getHours() + 2)
+
+        let serviceTitle = 'Service'
+        let propertyTitle = 'Propriété'
+
+        if (request.service_id) {
+          const { data: service } = await supabase
+            .from('services')
+            .select('name')
+            .eq('id', request.service_id)
+            .single()
+          
+          if (service) serviceTitle = service.name
+        }
+
+        if (request.property_id) {
+          const { data: property } = await supabase
+            .from('properties')
+            .select('title')
+            .eq('id', request.property_id)
+            .single()
+          
+          if (property) propertyTitle = property.title
+        }
+
+        events.push({
+          id: `service-${request.id}`,
+          title: `${serviceTitle} - ${propertyTitle}`,
+          start: scheduledDate,
+          end: endDate,
+          type: 'booking',
+          resource: {
+            ...request,
+            serviceTitle,
+            propertyTitle
+          }
+        })
+      }
+    }
+
+    return events
+  } catch (error) {
+    console.error('Error fetching provider calendar events:', error)
+    return []
+  }
+}
+
+/**
+ * Set provider availability for specific dates
+ * Note: For now, this is a placeholder function
+ * @param _providerId - Service provider ID (unused for now)
+ * @param _startDate - Start date (unused for now)
+ * @param _endDate - End date (unused for now)
+ * @param _available - Whether to make dates available or unavailable (unused for now)
+ * @param _reason - Reason for unavailability (unused for now)
+ */
+export async function setProviderAvailability(
+  _providerId: string,
+  _startDate: Date,
+  _endDate: Date,
+  _available: boolean,
+  _reason?: string
+): Promise<void> {
+  try {
+    console.log('Provider availability setting not implemented yet')
+  } catch (error) {
+    console.error('Error setting provider availability:', error)
+    throw error
+  }
+}
+
+/**
+ * Check if a provider is available for a specific date and time
+ * @param providerId - Service provider ID
+ * @param scheduledDate - Date and time for the service
+ * @returns True if available, false otherwise
+ */
+export async function checkProviderAvailability(
+  providerId: string,
+  scheduledDate: Date
+): Promise<boolean> {
+  try {
+    const { data: serviceRequests, error: requestsError } = await supabase
+      .from('service_requests')
+      .select('scheduled_date')
+      .eq('provider_id', providerId)
+      .in('status', ['confirmed', 'in_progress'])
+      .gte('scheduled_date', startOfDay(scheduledDate).toISOString())
+      .lte('scheduled_date', endOfDay(scheduledDate).toISOString())
+
+    if (requestsError) throw requestsError
+
+    if (serviceRequests && serviceRequests.length > 0) {
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Error checking provider availability:', error)
+    return false
+  }
+}

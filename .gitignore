@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 AGENTS.md
 .env
+
+# Development TODO file
+todo.md
