@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AlertTriangle, User, Mail, Phone, Shield, Trash2 } from 'lucide-react'
+import { AlertTriangle, User, Mail, Phone, Shield, Trash2, Settings } from 'lucide-react'
 import type { TablesUpdate, UserRole } from '@/types/database'
 
 const profileSchema = z.object({
@@ -128,43 +128,43 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate(getDashboardUrl(user!.role as UserRole))}
-                className="flex items-center space-x-2"
-              >
-                <span>←</span>
-                <span>Retour au tableau de bord</span>
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Mon Profil</h1>
-                <p className="text-sm text-gray-600">
-                  Gérez vos informations personnelles
-                </p>
+    <div className="min-h-screen bg-white">
+      <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="relative">
+          <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(getDashboardUrl(user!.role as UserRole))}
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl flex items-center space-x-2"
+                >
+                  <span>←</span>
+                  <span>Retour au tableau de bord</span>
+                </Button>
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">Mon Profil</h1>
+                  <p className="text-white/90 text-lg">
+                    Gérez vos informations personnelles
+                  </p>
+                </div>
               </div>
+              <Button onClick={signOut} variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl">
+                Se déconnecter
+              </Button>
             </div>
-            <Button onClick={signOut} variant="outline">
-              Se déconnecter
-            </Button>
-          </div>
+          </header>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Information */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5" />
+            <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl font-semibold text-gray-900 flex items-center space-x-3">
+                  <User className="h-6 w-6 text-blue-600" />
                   <span>Informations personnelles</span>
                 </CardTitle>
               </CardHeader>
@@ -263,21 +263,22 @@ export function ProfilePage() {
             </Card>
           </div>
 
-          {/* Account Info & Danger Zone */}
           <div className="space-y-6">
-            {/* Account Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Informations du compte</CardTitle>
+            <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+                  <Settings className="h-5 w-5 text-blue-600" />
+                  <span>Informations du compte</span>
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Type de compte</p>
-                  <p className="text-sm text-gray-600">{getRoleLabel(user!.role as UserRole)}</p>
+                  <p className="font-medium text-gray-900 mb-1">Type de compte</p>
+                  <p className="text-gray-600">{getRoleLabel(user!.role as UserRole)}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Membre depuis</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-gray-900 mb-1">Membre depuis</p>
+                  <p className="text-gray-600">
                     {new Date(user!.created_at!).toLocaleDateString('fr-FR', {
                       year: 'numeric',
                       month: 'long',
@@ -286,24 +287,23 @@ export function ProfilePage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Dernière mise à jour</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-gray-900 mb-1">Dernière mise à jour</p>
+                  <p className="text-gray-600">
                     {user!.updated_at ? new Date(user!.updated_at).toLocaleDateString('fr-FR') : 'Jamais'}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Danger Zone */}
-            <Card className="border-red-200">
-              <CardHeader>
-                <CardTitle className="text-lg text-red-700 flex items-center space-x-2">
+            <Card className="rounded-2xl bg-red-50/50 backdrop-blur-sm border-red-200 shadow-lg">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-xl font-semibold text-red-700 flex items-center space-x-2">
                   <AlertTriangle className="h-5 w-5" />
                   <span>Zone de danger</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">
+              <CardContent className="space-y-6">
+                <p className="text-gray-600">
                   La suppression de votre compte est irréversible. Toutes vos données seront perdues.
                 </p>
                 
@@ -311,32 +311,32 @@ export function ProfilePage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full border-red-300 text-red-700 hover:bg-red-50"
+                    className="w-full border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 transition-all duration-200"
                     contentClassName='flex flex-row items-center justify-center'
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Supprimer mon compte
                   </Button>
                 ) : (
-                  <div className="space-y-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div className="space-y-6 p-6 bg-red-50/80 rounded-xl border border-red-200">
                     <div>
-                      <p className="text-sm font-medium text-red-800 mb-2">
+                      <p className="font-medium text-red-800 mb-2">
                         Êtes-vous sûr de vouloir supprimer votre compte ?
                       </p>
-                      <p className="text-xs text-red-700 mb-1">
+                      <p className="text-sm text-red-700 mb-1">
                         Cette action supprimera définitivement votre profil et toutes vos données.
                       </p>
-                      <p className="text-xs text-red-700 mb-3">
+                      <p className="text-sm text-red-700 mb-4">
                         Pour confirmer, tapez "SUPPRIMER" dans le champ ci-dessous :
                       </p>
                       <Input
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.target.value)}
                         placeholder="Tapez SUPPRIMER"
-                        className="mb-3"
+                        className="mb-4"
                       />
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -344,7 +344,7 @@ export function ProfilePage() {
                           setDeleteConfirmText('')
                           setError('')
                         }}
-                        className="flex-1"
+                        className="flex-1 border-gray-300 hover:bg-gray-50 transition-all duration-200"
                         disabled={isDeleting}
                       >
                         Annuler
@@ -352,7 +352,7 @@ export function ProfilePage() {
                       <Button
                         onClick={handleDeleteAccount}
                         disabled={deleteConfirmText !== 'SUPPRIMER' || isDeleting}
-                        className="flex-1 bg-red-600 hover:bg-red-700"
+                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-all duration-200"
                       >
                         {isDeleting ? 'Suppression...' : 'Supprimer définitivement'}
                       </Button>

@@ -16,7 +16,6 @@ import {
   Bath, 
   MapPin, 
   Euro, 
-  Star,
   Wifi,
   Car,
   Coffee,
@@ -199,10 +198,10 @@ export function PropertyDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#62cff4] via-blue-50 to-[#2c67f2] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement des détails...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+          <p className="mt-6 text-white text-lg font-medium">Chargement des détails...</p>
         </div>
       </div>
     )
@@ -210,14 +209,18 @@ export function PropertyDetailsPage() {
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Propriété introuvable</h2>
-          <p className="text-gray-600 mb-6">Cette propriété n'existe pas ou n'est plus disponible.</p>
-          <Link to="/search">
-            <Button>Retour à la recherche</Button>
-          </Link>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-[#62cff4] via-blue-50 to-[#2c67f2] flex items-center justify-center">
+        <Card className="text-center max-w-md mx-auto rounded-2xl bg-white/90 backdrop-blur-sm border-gray-100 shadow-xl">
+          <CardContent className="p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Propriété introuvable</h2>
+            <p className="text-gray-600 mb-6">Cette propriété n'existe pas ou n'est plus disponible.</p>
+            <Link to="/search">
+              <Button className="bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200">
+                Retour à la recherche
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -225,15 +228,14 @@ export function PropertyDetailsPage() {
   const { total, nights, commission, subtotal } = calculateTotal(bookingData.checkIn, bookingData.checkOut, bookingData.guests)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 hover:bg-gray-100 rounded-xl transition-all duration-200"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Retour</span>
@@ -241,7 +243,9 @@ export function PropertyDetailsPage() {
             
             {user?.role === 'traveler' && (
               <Link to="/dashboard/traveler">
-                <Button variant="outline">Mon Dashboard</Button>
+                <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-xl transition-all duration-200">
+                  Mon Dashboard
+                </Button>
               </Link>
             )}
           </div>
@@ -250,103 +254,96 @@ export function PropertyDetailsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Property Details */}
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{property.title}</h1>
-              <div className="flex items-center space-x-2 text-gray-600 mb-4">
-                <MapPin className="h-4 w-4" />
-                <span>{property.address}, {property.city}</span>
-              </div>
-              
-              <div className="flex items-center space-x-4 mb-6">
-                <Badge className="bg-green-100 text-green-800">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-100 shadow-lg">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">{property.title}</h1>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-2 text-gray-600">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <span className="text-lg">{property.address}, {property.city}</span>
+                </div>
+                <Badge className="bg-green-100 text-green-800 px-4 py-2 rounded-full">
                   {property.validation_status === 'approved' ? 'Vérifié' : 'En attente'}
                 </Badge>
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                  <span className="text-sm">4.8 (12 avis)</span>
-                </div>
               </div>
+
+              {property.images && property.images.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <StorageImage
+                      src={property.images[0]}
+                      alt={property.title}
+                      className="w-full h-96 object-cover rounded-2xl shadow-lg"
+                    />
+                  </div>
+                  {property.images.slice(1, 5).map((image, index) => (
+                    <div key={index} className="relative">
+                      <StorageImage
+                        src={image}
+                        alt={`${property.title} - Image ${index + 2}`}
+                        className="w-full h-48 object-cover rounded-xl shadow-md"
+                      />
+                      {index === 3 && property.images && property.images.length > 5 && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center">
+                          <span className="text-white font-medium text-lg">
+                            +{property.images.length - 5} photos
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Image Gallery */}
-            {property.images && property.images.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="md:col-span-2">
-                      <StorageImage
-                        src={property.images[0]}
-                        alt={property.title}
-                        className="w-full h-96 object-cover rounded-lg"
-                      />
-                    </div>
-                {property.images.slice(1, 5).map((image, index) => (
-                  <div key={index} className="relative">
-                    <StorageImage
-                      src={image}
-                      alt={`${property.title} - Image ${index + 2}`}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                    {index === 3 && property.images && property.images.length > 5 && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-medium">
-                          +{property.images.length - 5} photos
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Description</CardTitle>
+            <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold text-gray-900">Description</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 leading-relaxed">
+              <CardContent className="pt-0">
+                <p className="text-gray-700 leading-relaxed text-sm">
                   {property.description || 'Aucune description disponible.'}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Détails de la propriété</CardTitle>
+            <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold text-gray-900">Détails de la propriété</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-5 w-5 text-gray-400" />
-                    <span>{property.capacity} voyageurs maximum</span>
+              <CardContent className="pt-0">
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div className="flex items-center space-x-2 p-3 bg-blue-50/50 rounded-lg">
+                    <Users className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium">{property.capacity} voyageurs max</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Bed className="h-5 w-5 text-gray-400" />
-                    <span>{property.bedrooms || 1} chambre(s)</span>
+                  <div className="flex items-center space-x-2 p-3 bg-blue-50/50 rounded-lg">
+                    <Bed className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium">{property.bedrooms || 1} chambre(s)</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Bath className="h-5 w-5 text-gray-400" />
-                    <span>{property.bathrooms || 1} salle(s) de bain</span>
+                  <div className="flex items-center space-x-2 p-3 bg-blue-50/50 rounded-lg">
+                    <Bath className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium">{property.bathrooms || 1} salle(s) de bain</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Euro className="h-5 w-5 text-gray-400" />
-                    <span>{property.nightly_rate}€ par nuit</span>
+                  <div className="flex items-center space-x-2 p-3 bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white rounded-lg">
+                    <Euro className="h-5 w-5" />
+                    <span className="text-sm font-bold">{property.nightly_rate}€ par nuit</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {property.amenities && property.amenities.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Équipements</CardTitle>
+              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-semibold text-gray-900">Équipements</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-3">
+                <CardContent className="pt-0">
+                  <div className="grid md:grid-cols-3 gap-2">
                     {property.amenities.map((amenity, index) => (
-                      <div key={index} className="flex items-center space-x-2">
+                      <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50/50 rounded-lg hover:bg-blue-50/50 transition-all duration-200">
                         {getAmenityIcon(amenity)}
-                        <span className="capitalize">{amenity}</span>
+                        <span className="capitalize text-sm font-medium">{amenity}</span>
                       </div>
                     ))}
                   </div>
@@ -355,44 +352,47 @@ export function PropertyDetailsPage() {
             )}
           </div>
 
-          {/* Booking Card */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-8">
-              <CardHeader>
+            <Card className="sticky top-24 rounded-2xl bg-white/80 backdrop-blur-sm border-gray-100 shadow-xl">
+              <CardHeader className="pb-6">
                 <CardTitle className="flex items-center justify-between">
-                  <span>Réserver</span>
+                  <span className="text-xl font-semibold">Réserver</span>
                   <div className="text-right">
-                    <div className="text-2xl font-bold">{property.nightly_rate}€</div>
-                    <div className="text-sm text-gray-600">par nuit</div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-[#62cff4] to-[#2c67f2] bg-clip-text text-transparent">
+                      {property.nightly_rate}€
+                    </div>
+                    <div className="text-sm text-gray-500">par nuit</div>
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="checkin">Arrivée</Label>
+                    <Label htmlFor="checkin" className="text-sm font-medium text-gray-700">Arrivée</Label>
                     <Input
                       id="checkin"
                       type="date"
                       value={bookingData.checkIn}
                       onChange={(e) => setBookingData(prev => ({ ...prev, checkIn: e.target.value }))}
                       min={new Date().toISOString().split('T')[0]}
+                      className="mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="checkout">Départ</Label>
+                    <Label htmlFor="checkout" className="text-sm font-medium text-gray-700">Départ</Label>
                     <Input
                       id="checkout"
                       type="date"
                       value={bookingData.checkOut}
                       onChange={(e) => setBookingData(prev => ({ ...prev, checkOut: e.target.value }))}
                       min={bookingData.checkIn || new Date().toISOString().split('T')[0]}
+                      className="mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="guests">Voyageurs</Label>
+                  <Label htmlFor="guests" className="text-sm font-medium text-gray-700">Voyageurs</Label>
                   <Input
                     id="guests"
                     type="number"
@@ -400,36 +400,39 @@ export function PropertyDetailsPage() {
                     onChange={(e) => setBookingData(prev => ({ ...prev, guests: Math.max(1, parseInt(e.target.value) || 1) }))}
                     min={1}
                     max={property.capacity}
+                    className="mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
 
                 {nights > 0 && (
-                  <div className="space-y-2 pt-4 border-t">
-                    <div className="flex justify-between text-sm">
+                  <div className="space-y-3 pt-6 border-t border-gray-200">
+                    <div className="flex justify-between text-gray-600">
                       <span>{property.nightly_rate}€ × {nights} nuit(s) × {bookingData.guests} voyageur(s)</span>
-                      <span>{subtotal?.toFixed(2)}€</span>
+                      <span className="font-medium">{subtotal?.toFixed(2)}€</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-gray-600">
                       <span>Frais de service (20%)</span>
-                      <span>{commission.toFixed(2)}€</span>
+                      <span className="font-medium">{commission.toFixed(2)}€</span>
                     </div>
-                    <Separator />
-                    <div className="flex justify-between font-semibold">
+                    <Separator className="my-4" />
+                    <div className="flex justify-between text-xl font-bold text-gray-900">
                       <span>Total</span>
-                      <span>{total.toFixed(2)}€</span>
+                      <span className="bg-gradient-to-r from-[#62cff4] to-[#2c67f2] bg-clip-text text-transparent">
+                        {total.toFixed(2)}€
+                      </span>
                     </div>
                   </div>
                 )}
 
                 {user?.role === 'traveler' ? (
                   <Button 
-                    className="w-full" 
+                    className="w-full bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white font-semibold py-4 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200" 
                     onClick={handleBooking}
                     disabled={isBooking || !bookingData.checkIn || !bookingData.checkOut || nights <= 0}
                   >
                     {isBooking ? (
                       <div className="flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         <span>Réservation...</span>
                       </div>
                     ) : (
@@ -437,12 +440,14 @@ export function PropertyDetailsPage() {
                     )}
                   </Button>
                 ) : (
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-3">
+                  <div className="text-center p-4 bg-blue-50/50 rounded-xl">
+                    <p className="text-gray-600 mb-4">
                       Connectez-vous en tant que voyageur pour réserver
                     </p>
                     <Link to="/auth">
-                      <Button className="w-full">Se connecter</Button>
+                      <Button className="w-full bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all duration-200">
+                        Se connecter
+                      </Button>
                     </Link>
                   </div>
                 )}

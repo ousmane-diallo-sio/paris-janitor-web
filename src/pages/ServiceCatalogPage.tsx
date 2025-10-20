@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Search, Filter, MapPin, Star, Clock, Euro } from 'lucide-react'
+import { Search, MapPin, Star, Clock, Euro } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card } from '../components/ui/card'
@@ -33,9 +33,7 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | 'all'>('all')
   const [sortBy, setSortBy] = useState<'price' | 'rating' | 'name'>('name')
-  const [showFilters, setShowFilters] = useState(false)
 
-  // Service request modal
   const [selectedService, setSelectedService] = useState<ServiceWithProvider | null>(null)
   const [showRequestModal, setShowRequestModal] = useState(false)
 
@@ -64,7 +62,6 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
   const filteredAndSortedServices = useMemo(() => {
     let filtered = services
 
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(service => 
@@ -74,7 +71,6 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
       )
     }
 
-    // Apply sorting
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price': {
@@ -90,15 +86,6 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
       }
     })
   }, [services, searchQuery, sortBy])
-
-  const getCategoryConfig = (category: string) => {
-    // Find matching category key
-    const categoryKey = Object.keys(SERVICE_CATEGORIES).find(
-      key => SERVICE_CATEGORIES[key as keyof typeof SERVICE_CATEGORIES] === category
-    ) as keyof typeof SERVICE_CATEGORIES
-    
-    return categoryKey ? SERVICE_CATEGORY_CONFIG[SERVICE_CATEGORIES[categoryKey]] : null
-  }
 
   const formatPrice = (service: ServiceWithProvider) => {
     const pricing = ServicePricingCalculator.calculatePrice(service, { quantity: 1, isVipTraveler: false })
@@ -117,7 +104,6 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
   const getPriceTypeLabel = (priceType?: string | null) => {
     if (!priceType) return 'Sur devis'
     
-    // Find matching price type key
     const priceTypeKey = Object.keys(PRICE_TYPES).find(
       key => PRICE_TYPES[key as keyof typeof PRICE_TYPES] === priceType
     ) as keyof typeof PRICE_TYPES
@@ -144,7 +130,6 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
   }
 
   const handleModalSuccess = () => {
-    // Refresh services or show success message
     loadServices()
   }
 
@@ -190,112 +175,138 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Catalogue de Services</h1>
-        <p className="text-gray-600">
-          Découvrez nos services de conciergerie pour votre propriété
-        </p>
-      </div>
-
-      {/* Category Filters */}
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedCategory === 'all' ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory('all')}
-            className="flex items-center gap-2"
-          >
-            Tous les services
-          </Button>
-          {Object.entries(SERVICE_CATEGORIES).map(([key, category]) => {
-            const config = SERVICE_CATEGORY_CONFIG[category]
-            return (
-              <Button
-                key={key}
-                variant={selectedCategory === category ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory(category)}
-                className="flex items-center gap-2"
-              >
-                <span>{config.icon}</span>
-                {config.label}
-              </Button>
-            )
-          })}
+    <div className="min-h-screen bg-white">
+      <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold mb-6">
+              Trouvez le service parfait
+            </h1>
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              Découvrez nos services de conciergerie premium pour votre propriété
+            </p>
+            
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-md rounded-full p-2 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
+                  <Input
+                    type="text"
+                    placeholder="Que recherchez-vous ?"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-12 pr-4 py-4 bg-transparent border-none text-white placeholder-white/70 focus:ring-0 text-lg"
+                  />
+                </div>
+                <Button 
+                  className="bg-white text-[#2c67f2] hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full"
+                >
+                  Rechercher
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="Rechercher un service ou un prestataire..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="lg:w-1/4">
+            <div className="sticky top-8 space-y-6">
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Catégories</h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setSelectedCategory('all')}
+                    className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                      selectedCategory === 'all' 
+                        ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white' 
+                        : 'hover:bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    Tous les services
+                  </button>
+                  {Object.entries(SERVICE_CATEGORIES).map(([key, category]) => {
+                    const config = SERVICE_CATEGORY_CONFIG[category]
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-3 ${
+                          selectedCategory === category 
+                            ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white' 
+                            : 'hover:bg-gray-50 text-gray-700'
+                        }`}
+                      >
+                        <span className="text-lg">{config.icon}</span>
+                        <span className="font-medium">{config.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Trier par</h3>
+                <Select
+                  value={sortBy}
+                  onValueChange={(value) => setSortBy(value as 'price' | 'rating' | 'name')}
+                >
+                  <option value="name">Nom (A-Z)</option>
+                  <option value="price">Prix (croissant)</option>
+                  <option value="rating">Note (décroissant)</option>
+                </Select>
+              </div>
+
+              <div className="bg-gray-50 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {filteredAndSortedServices.length} service{filteredAndSortedServices.length !== 1 ? 's' : ''} trouvé{filteredAndSortedServices.length !== 1 ? 's' : ''}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {selectedCategory === 'all' ? 'Toutes catégories' : SERVICE_CATEGORY_CONFIG[selectedCategory]?.label}
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Sort */}
-          <div className="md:w-48">
-            <Select
-              value={sortBy}
-              onValueChange={(value) => setSortBy(value as 'price' | 'rating' | 'name')}
-            >
-              <option value="name">Trier par nom</option>
-              <option value="price">Trier par prix</option>
-              <option value="rating">Trier par note</option>
-            </Select>
+          <div className="lg:w-3/4">
+            {filteredAndSortedServices.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Search className="w-12 h-12 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun service trouvé</h3>
+                <p className="text-gray-600 mb-6">
+                  Essayez d'ajuster vos critères de recherche ou parcourez toutes les catégories
+                </p>
+                <Button 
+                  onClick={() => {
+                    setSearchQuery('')
+                    setSelectedCategory('all')
+                  }}
+                  className="bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white hover:opacity-90"
+                >
+                  Réinitialiser les filtres
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredAndSortedServices.map((service) => (
+                  <ServiceCard
+                    key={service.id}
+                    service={service}
+                    onRequestService={handleRequestService}
+                    formatPrice={formatPrice}
+                    getPriceTypeLabel={getPriceTypeLabel}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-
-          {/* Filter Toggle */}
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <Filter className="w-4 h-4" />
-            Filtres
-          </Button>
         </div>
       </div>
 
-      {/* Results Count */}
-      <div className="mb-4 text-gray-600">
-        {filteredAndSortedServices.length} service(s) trouvé(s)
-      </div>
-
-      {/* Services Grid */}
-      {filteredAndSortedServices.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600 mb-4">Aucun service trouvé</p>
-          <Button onClick={() => {
-            setSearchQuery('')
-            setSelectedCategory('all')
-          }}>
-            Réinitialiser les filtres
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedServices.map((service) => (
-            <ServiceCard
-              key={service.id}
-              service={service}
-              onRequestService={handleRequestService}
-              formatPrice={formatPrice}
-              getPriceTypeLabel={getPriceTypeLabel}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Service Request Modal */}
       <ServiceRequestModal
         service={selectedService}
         isOpen={showRequestModal}
@@ -320,7 +331,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   getPriceTypeLabel
 }) => {
   const getCategoryConfig = (category: string) => {
-    // Find matching category key
     const categoryKey = Object.keys(SERVICE_CATEGORIES).find(
       key => SERVICE_CATEGORIES[key as keyof typeof SERVICE_CATEGORIES] === category
     ) as keyof typeof SERVICE_CATEGORIES
@@ -331,69 +341,82 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   const categoryConfig = getCategoryConfig(service.category)
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow">
-      {/* Service Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="text-2xl">
+    <Card className="group cursor-pointer bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="relative">
+        <div className="aspect-[4/3] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <div className="text-6xl opacity-20">
             {categoryConfig?.icon || '🔧'}
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{service.name}</h3>
-            <p className="text-sm text-gray-600">
-              {categoryConfig?.label || service.category}
-            </p>
+        </div>
+        
+        <div className="absolute top-3 left-3">
+          <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold text-gray-700">
+            {categoryConfig?.label || service.category}
           </div>
         </div>
+        
         {service.avg_rating && (
-          <div className="flex items-center gap-1 text-sm text-gray-600">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            {service.avg_rating.toFixed(1)}
+          <div className="absolute top-3 right-3">
+            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1">
+              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs font-semibold text-gray-700">
+                {service.avg_rating.toFixed(1)}
+              </span>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Description */}
-      <p className="text-gray-600 mb-4 line-clamp-2">
-        {service.description || 'Aucune description disponible.'}
-      </p>
-
-      {/* Provider Info */}
-      <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
-        <MapPin className="w-4 h-4" />
-        <span>{service.provider.full_name || 'Prestataire'}</span>
-      </div>
-
-      {/* Service Details */}
-      <div className="space-y-2 mb-4 text-sm">
-        {service.duration_minutes && (
-          <div className="flex items-center gap-2 text-gray-600">
-            <Clock className="w-4 h-4" />
-            <span>{service.duration_minutes} min</span>
+      <div className="p-6">
+        <div className="mb-3">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-[#2c67f2] transition-colors">
+            {service.name}
+          </h3>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <MapPin className="w-4 h-4" />
+            <span>{service.provider.full_name || 'Prestataire'}</span>
           </div>
-        )}
-        <div className="flex items-center gap-2 text-gray-600">
-          <Euro className="w-4 h-4" />
-          <span>{getPriceTypeLabel(service.price_type)}</span>
         </div>
-      </div>
 
-      {/* Price and Action */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-lg font-semibold text-indigo-600">
-            {formatPrice(service)}
-          </p>
-          <p className="text-xs text-gray-500">
-            Prix TTC (commission incluse)
-          </p>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+          {service.description || 'Aucune description disponible.'}
+        </p>
+
+        <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+          {service.duration_minutes && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>{service.duration_minutes} min</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1">
+            <Euro className="w-4 h-4" />
+            <span>{getPriceTypeLabel(service.price_type)}</span>
+          </div>
         </div>
-        <Button
-          onClick={() => onRequestService?.(service)}
-          className="flex items-center gap-2"
-        >
-          Réserver
-        </Button>
+
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-bold text-gray-900">
+                {formatPrice(service).split('/')[0]}
+              </span>
+              {formatPrice(service).includes('/') && (
+                <span className="text-sm text-gray-600">
+                  /{formatPrice(service).split('/')[1]}
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-gray-500">TTC</span>
+          </div>
+          
+          <Button
+            onClick={() => onRequestService?.(service)}
+            className="bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white hover:opacity-90 font-semibold px-6 py-2 rounded-lg transition-all"
+          >
+            Réserver
+          </Button>
+        </div>
       </div>
     </Card>
   )

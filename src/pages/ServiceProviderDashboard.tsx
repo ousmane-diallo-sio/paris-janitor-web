@@ -152,9 +152,9 @@ export function ServiceProviderDashboard() {
 
         setStats({
           totalInterventions: serviceRequests.length,
-          averageRating: 4.2, // Mock data for now
+          averageRating: 0,
           completedThisMonth,
-          monthlyEarnings: completedThisMonth * 85, // TODO : monthly earnings calculation
+          monthlyEarnings: completedThisMonth * 85, // TODO: implement proper monthly earnings calculation
           pendingRequests: pendingCount
         })
       },
@@ -248,47 +248,53 @@ export function ServiceProviderDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard Prestataire</h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Bonjour, {user?.full_name || user?.email}
-              </span>
-              <Link to="/profile">
-                <Button variant="outline" size="sm">
-                  Mon profil
+      <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/5"></div>
+        <div className="relative">
+          <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold mb-1">
+                  Dashboard Prestataire
+                </h1>
+                <p className="text-white/90">
+                  Bonjour, {user?.full_name?.split(' ')[0] || user?.email}
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Link to="/profile">
+                  <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg">
+                    Mon profil
+                  </Button>
+                </Link>
+                <Button variant="outline" onClick={signOut} className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg">
+                  Se déconnecter
                 </Button>
-              </Link>
-              <Button variant="outline" onClick={signOut}>
-                Se déconnecter
-              </Button>
+              </div>
             </div>
-          </div>
+          </header>
         </div>
-      </header>
+      </div>
 
-      {/* Tab Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg overflow-hidden">
+          <nav className="flex">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${
                 activeTab === 'dashboard'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Tableau de bord
             </button>
             <button
               onClick={() => setActiveTab('services')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${
                 activeTab === 'services'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <Settings className="w-4 h-4 mr-2 inline" />
@@ -300,201 +306,216 @@ export function ServiceProviderDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'dashboard' && (
-          <>
-            {/* Performance Stats */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenus du mois</CardTitle>
-              <Euro className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.monthlyEarnings.toFixed(0)} €</div>
-              <p className="text-xs text-muted-foreground">
-                Basé sur {stats.completedThisMonth} interventions
-              </p>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Revenus du mois</CardTitle>
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Euro className="h-4 w-4 text-blue-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stats.monthlyEarnings.toFixed(0)} €</div>
+                  <p className="text-xs text-gray-500">
+                    Basé sur {stats.completedThisMonth} interventions
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Interventions totales</CardTitle>
-              <Wrench className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalInterventions}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.pendingRequests} en attente
-              </p>
-            </CardContent>
-          </Card>
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Interventions totales</CardTitle>
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Wrench className="h-4 w-4 text-green-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stats.totalInterventions}</div>
+                  <p className="text-xs text-gray-500">
+                    {stats.pendingRequests} en attente
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Note moyenne</CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.averageRating.toFixed(1)}/5</div>
-              <p className="text-xs text-muted-foreground">
-                Évaluation clients
-              </p>
-            </CardContent>
-          </Card>
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Note moyenne</CardTitle>
+                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Star className="h-4 w-4 text-yellow-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stats.averageRating.toFixed(1)}/5</div>
+                  <p className="text-xs text-gray-500">
+                    Évaluation clients
+                  </p>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ce mois</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.completedThisMonth}</div>
-              <p className="text-xs text-muted-foreground">
-                Services terminés
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Ce mois</CardTitle>
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Calendar className="h-4 w-4 text-purple-600" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stats.completedThisMonth}</div>
+                  <p className="text-xs text-gray-500">
+                    Services terminés
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6 mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Mes services</CardTitle>
-              <CardDescription>
-                Gérez vos offres de services
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Button 
-                  className="w-full"
-                  onClick={() => setActiveTab('services')}
-                >
-                  Ajouter un service
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => setActiveTab('services')}
-                >
-                  Voir mes services
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg font-semibold text-gray-900">Mes services</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Gérez vos offres de services
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-[#62cff4] to-[#2c67f2] hover:from-[#4fb8e8] hover:to-[#1e4fd4] text-white font-medium py-2.5 rounded-lg"
+                    onClick={() => setActiveTab('services')}
+                  >
+                    Ajouter un service
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full rounded-lg border-gray-300 hover:bg-gray-50 py-2.5"
+                    onClick={() => setActiveTab('services')}
+                  >
+                    Voir mes services
+                  </Button>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Disponibilités</CardTitle>
-              <CardDescription>
-                Gérez votre planning
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Button className="w-full">
-                  Modifier mes créneaux
-                </Button>
-                <Button variant="outline" className="w-full">
-                  Voir le planning
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg font-semibold text-gray-900">Disponibilités</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Gérez votre planning
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-2.5 rounded-lg">
+                    Modifier mes créneaux
+                  </Button>
+                  <Button variant="outline" className="w-full rounded-lg border-gray-300 hover:bg-gray-50 py-2.5">
+                    Voir le planning
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Service Requests */}
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Demandes de service
-                {stats.pendingRequests > 0 && (
-                  <Badge variant="destructive">{stats.pendingRequests} nouvelles</Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                Gérez vos demandes d'intervention
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {requestsLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-600">Chargement des demandes...</p>
-                </div>
-              ) : serviceRequests.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune demande</h3>
-                  <p>Vous n'avez pas encore reçu de demandes de service.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {serviceRequests.slice(0, 3).map((request) => (
-                    <div key={request.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{request.service.name}</h4>
-                          {getStatusBadge(request.status || 'pending')}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-1">
-                          Demandé par: {request.requester.full_name || 'Client anonyme'}
-                        </p>
-                        {request.property && (
-                          <p className="text-sm text-gray-500 flex items-center">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {request.property.city}
-                          </p>
-                        )}
-                        <p className="text-sm text-gray-500">
-                          <Clock className="h-3 w-3 inline mr-1" />
-                          {formatDate(request.requested_date)}
-                        </p>
-                      </div>
-                      <div className="text-right ml-4">
-                        <p className="font-bold text-lg text-green-600">
-                          {request.total_amount.toFixed(2)} €
-                        </p>
-                        {request.status === 'pending' && (
-                          <div className="flex gap-2 mt-2">
-                            <Button
-                              size="sm"
-                              onClick={() => updateRequestStatus(request.id, 'accepted')}
-                            >
-                              Accepter
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateRequestStatus(request.id, 'cancelled')}
-                            >
-                              Refuser
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {serviceRequests.length > 3 && (
-                    <div className="text-center pt-4">
-                      <Button variant="outline">
-                        Voir toutes les demandes ({serviceRequests.length})
-                      </Button>
-                    </div>
+            <Card className="bg-white border border-gray-200 rounded-xl">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-gray-900">Demandes de service</CardTitle>
+                    <CardDescription className="text-gray-600">
+                      Gérez vos demandes d'intervention
+                    </CardDescription>
+                  </div>
+                  {stats.pendingRequests > 0 && (
+                    <Badge className="bg-red-100 text-red-700 border-red-200 px-3 py-1">
+                      {stats.pendingRequests} nouvelles
+                    </Badge>
                   )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-          </>
+              </CardHeader>
+              <CardContent>
+                {requestsLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Chargement des demandes...</p>
+                  </div>
+                ) : serviceRequests.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Users className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune demande</h3>
+                    <p className="text-gray-600">Vous n'avez pas encore reçu de demandes de service.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {serviceRequests.slice(0, 3).map((request) => (
+                      <Card key={request.id} className="bg-gray-50 border-gray-200 hover:shadow-sm transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">{request.service.name}</h4>
+                                {getStatusBadge(request.status || 'pending')}
+                              </div>
+                              <p className="text-sm text-gray-600 mb-1">
+                                Demandé par: {request.requester.full_name || 'Client anonyme'}
+                              </p>
+                              {request.property && (
+                                <p className="text-sm text-gray-500 flex items-center mb-1">
+                                  <MapPin className="h-3 w-3 mr-1" />
+                                  {request.property.city}
+                                </p>
+                              )}
+                              <p className="text-sm text-gray-500 flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {formatDate(request.requested_date)}
+                              </p>
+                            </div>
+                            <div className="text-right ml-4">
+                              <p className="font-semibold text-xl text-green-600 mb-2">
+                                {request.total_amount.toFixed(2)} €
+                              </p>
+                              {request.status === 'pending' && (
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-3 py-1 text-xs"
+                                    onClick={() => updateRequestStatus(request.id, 'accepted')}
+                                  >
+                                    Accepter
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="rounded-lg border-red-200 text-red-600 hover:bg-red-50 px-3 py-1 text-xs"
+                                    onClick={() => updateRequestStatus(request.id, 'cancelled')}
+                                  >
+                                    Refuser
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    {serviceRequests.length > 3 && (
+                      <div className="text-center pt-4">
+                        <Button variant="outline" className="rounded-lg border-gray-300 hover:bg-gray-50 px-4 py-2">
+                          Voir toutes les demandes ({serviceRequests.length})
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {activeTab === 'services' && (
-          <ServiceManagement />
+          <div className="bg-white rounded-xl border border-gray-200">
+            <div className="p-6">
+              <ServiceManagement />
+            </div>
+          </div>
         )}
       </main>
     </div>

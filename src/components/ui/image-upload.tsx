@@ -194,7 +194,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, propertyId 
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {imageItems.map((item, index) => (
-          <Card key={index} className={`relative group overflow-hidden ${item.hasError ? 'ring-2 ring-red-300 bg-red-50' : ''}`}>
+          <Card key={index} className={`h-52 w-52 relative group overflow-hidden ${item.hasError ? 'ring-2 ring-red-300 bg-red-50' : ''}`}>
             <CardContent className="p-0">
               <div className="aspect-square relative">
                 <img

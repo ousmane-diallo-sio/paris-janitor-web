@@ -130,39 +130,107 @@ export function PropertySearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Link to="/dashboard/traveler">
-                <Button variant="outline" size="sm">
-                  ← Retour
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Recherche de logements</h1>
-                <p className="text-sm text-gray-600">
-                  Trouvez le logement parfait pour votre séjour
-                </p>
+    <div className="min-h-screen bg-white">
+      <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4">
+              Trouvez votre logement idéal
+            </h1>
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              Explorez nos propriétés sélectionnées avec soin
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div className="lg:col-span-2">
+                  <label htmlFor="location" className="block text-sm font-medium text-white mb-2">
+                    Destination
+                  </label>
+                  <Input
+                    id="location"
+                    placeholder="Ville, quartier..."
+                    value={filters.location}
+                    onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                    className="bg-white/20 border-white/30 text-white placeholder-white/70"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="checkIn" className="block text-sm font-medium text-white mb-2">
+                    Arrivée
+                  </label>
+                  <Input
+                    id="checkIn"
+                    type="date"
+                    value={filters.checkIn}
+                    onChange={(e) => setFilters({ ...filters, checkIn: e.target.value })}
+                    className="bg-white/20 border-white/30 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="checkOut" className="block text-sm font-medium text-white mb-2">
+                    Départ
+                  </label>
+                  <Input
+                    id="checkOut"
+                    type="date"
+                    value={filters.checkOut}
+                    onChange={(e) => setFilters({ ...filters, checkOut: e.target.value })}
+                    className="bg-white/20 border-white/30 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="guests" className="block text-sm font-medium text-white mb-2">
+                    Voyageurs
+                  </label>
+                  <Input
+                    id="guests"
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={filters.guests}
+                    onChange={(e) => setFilters({ ...filters, guests: parseInt(e.target.value) || 1 })}
+                    className="bg-white/20 border-white/30 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="maxPrice" className="block text-sm font-medium text-white mb-2">
+                    Budget max
+                  </label>
+                  <Input
+                    id="maxPrice"
+                    type="number"
+                    placeholder="500€"
+                    value={filters.maxPrice}
+                    onChange={(e) => setFilters({ ...filters, maxPrice: parseInt(e.target.value) || 500 })}
+                    className="bg-white/20 border-white/30 text-white placeholder-white/70"
+                  />
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Search className="h-5 w-5" />
-              <span>Filtres de recherche</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 shadow-lg mb-12">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-2xl font-semibold text-gray-900 flex items-center space-x-3">
+              <Search className="h-6 w-6 text-blue-600" />
+              <span>Affinez votre recherche</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-              <div className="lg:col-span-2">
-                <Label htmlFor="location" className="flex items-center space-x-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+              <div className="xl:col-span-2">
+                <Label htmlFor="location" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
                   <MapPin className="h-4 w-4" />
                   <span>Destination</span>
                 </Label>
@@ -171,11 +239,12 @@ export function PropertySearchPage() {
                   placeholder="Ville, quartier..."
                   value={filters.location}
                   onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>
 
               <div>
-                <Label htmlFor="checkIn" className="flex items-center space-x-2">
+                <Label htmlFor="checkIn" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
                   <Calendar className="h-4 w-4" />
                   <span>Arrivée</span>
                 </Label>
@@ -184,21 +253,23 @@ export function PropertySearchPage() {
                   type="date"
                   value={filters.checkIn}
                   onChange={(e) => setFilters({ ...filters, checkIn: e.target.value })}
+                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>
 
               <div>
-                <Label htmlFor="checkOut">Départ</Label>
+                <Label htmlFor="checkOut" className="text-sm font-medium text-gray-700 mb-2 block">Départ</Label>
                 <Input
                   id="checkOut"
                   type="date"
                   value={filters.checkOut}
                   onChange={(e) => setFilters({ ...filters, checkOut: e.target.value })}
+                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>
 
               <div>
-                <Label htmlFor="guests" className="flex items-center space-x-2">
+                <Label htmlFor="guests" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
                   <Users className="h-4 w-4" />
                   <span>Voyageurs</span>
                 </Label>
@@ -209,11 +280,12 @@ export function PropertySearchPage() {
                   max="10"
                   value={filters.guests}
                   onChange={(e) => setFilters({ ...filters, guests: parseInt(e.target.value) || 1 })}
+                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>
 
               <div>
-                <Label htmlFor="maxPrice" className="flex items-center space-x-2">
+                <Label htmlFor="maxPrice" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
                   <Euro className="h-4 w-4" />
                   <span>Prix max/nuit</span>
                 </Label>
@@ -223,35 +295,38 @@ export function PropertySearchPage() {
                   min="0"
                   value={filters.maxPrice}
                   onChange={(e) => setFilters({ ...filters, maxPrice: parseInt(e.target.value) || 0 })}
+                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900">
               {filteredProperties.length} logement{filteredProperties.length !== 1 ? 's' : ''} trouvé{filteredProperties.length !== 1 ? 's' : ''}
             </h2>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-700">{error}</p>
-            </div>
+            <Card className="rounded-2xl border-red-200 bg-red-50">
+              <CardContent className="p-6">
+                <p className="text-red-700 text-center">{error}</p>
+              </CardContent>
+            </Card>
           )}
 
           {isSearching ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Recherche en cours...</p>
+            <div className="text-center py-16">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto"></div>
+              <p className="mt-6 text-lg text-gray-600">Recherche en cours...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredProperties.map((property) => (
-                <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="h-48 bg-gray-200 relative">
+                <Card key={property.id} className="rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-gray-100">
+                  <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
                     {property.images && property.images.length > 0 ? (
                       <StorageImage
                         src={property.images[0]}
@@ -260,62 +335,65 @@ export function PropertySearchPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <MapPin className="h-12 w-12" />
+                        <MapPin className="h-16 w-16" />
                       </div>
                     )}
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-4 right-4">
                       <Badge 
                         variant={property.validation_status === 'approved' ? 'default' : 'secondary'}
-                        className="bg-white text-gray-900"
+                        className="bg-white/90 backdrop-blur-sm text-gray-900 border-0 shadow-lg"
                       >
                         {property.validation_status === 'approved' ? 'Vérifié' : 'En attente'}
                       </Badge>
                     </div>
                   </div>
 
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg line-clamp-1">{property.title}</CardTitle>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="h-4 w-4 mr-1" />
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl font-semibold line-clamp-2">{property.title}</CardTitle>
+                    <div className="flex items-center text-gray-600">
+                      <MapPin className="h-4 w-4 mr-2" />
                       <span className="line-clamp-1">{property.address}, {property.city}</span>
                     </div>
                   </CardHeader>
 
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">
-                          {property.capacity} voyageur{(property.capacity || 0) > 1 ? 's' : ''}
-                        </span>
-                        <span className="text-lg font-bold text-blue-600">
+                  <CardContent className="pt-0 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 flex items-center">
+                        <Users className="h-4 w-4 mr-1" />
+                        {property.capacity} voyageur{(property.capacity || 0) > 1 ? 's' : ''}
+                      </span>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-gray-900">
                           {formatPrice(property.nightly_rate || 0)}
-                          <span className="text-sm font-normal text-gray-600">/nuit</span>
                         </span>
+                        <span className="text-sm text-gray-600 block">/nuit</span>
                       </div>
+                    </div>
 
-                      {property.amenities && property.amenities.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {property.amenities.slice(0, 3).map((amenity, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1 text-xs text-gray-600"
-                            >
-                              {getAmenityIcon(amenity)}
-                              <span>{amenity}</span>
-                            </div>
-                          ))}
-                          {property.amenities.length > 3 && (
-                            <div className="flex items-center bg-gray-100 rounded-full px-2 py-1 text-xs text-gray-600">
-                              +{property.amenities.length - 3}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                    {property.amenities && property.amenities.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {property.amenities.slice(0, 3).map((amenity, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center space-x-1 bg-gray-50 rounded-full px-3 py-1.5 text-sm text-gray-700"
+                          >
+                            {getAmenityIcon(amenity)}
+                            <span>{amenity}</span>
+                          </div>
+                        ))}
+                        {property.amenities.length > 3 && (
+                          <div className="flex items-center bg-gray-50 rounded-full px-3 py-1.5 text-sm text-gray-700">
+                            +{property.amenities.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    <Link to={`/property/${property.id}`}>
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 rounded-xl transition-all duration-200">
                         Voir les détails
                       </Button>
-                    </div>
+                    </Link>
                   </CardContent>
                 </Card>
               ))}
@@ -323,18 +401,20 @@ export function PropertySearchPage() {
           )}
 
           {!isSearching && filteredProperties.length === 0 && (
-            <div className="text-center py-12">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aucun logement trouvé
-              </h3>
-              <p className="text-gray-600">
-                Essayez de modifier vos critères de recherche
-              </p>
-            </div>
+            <Card className="rounded-2xl bg-gray-50">
+              <CardContent className="text-center py-16">
+                <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                  Aucun logement trouvé
+                </h3>
+                <p className="text-gray-600 text-lg">
+                  Essayez de modifier vos critères de recherche
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

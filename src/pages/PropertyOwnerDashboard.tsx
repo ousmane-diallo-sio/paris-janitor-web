@@ -9,16 +9,18 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { calculateOwnerMetrics, formatRevenue, formatOccupationRate, type OwnerMetrics } from '@/services/metricsService'
 import type { Property } from '@/types/database'
+import { getSignedUrl } from '../services/imageService'
+import { Building, CheckCircle, Euro, TrendingUp } from 'lucide-react'
 
 type ViewMode = 'list' | 'add' | 'edit' | 'calendar' | 'financial' | 'quotes'
 
 export function PropertyOwnerDashboard() {
   const { user, signOut, loading } = useAuthStore()
   const [searchParams, setSearchParams] = useSearchParams()
-  
+
   const view = searchParams.get('view') as ViewMode || 'list'
   const propertyId = searchParams.get('propertyId')
-  
+
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
   const [properties, setProperties] = useState<Property[]>([])
   const [propertiesLoading, setPropertiesLoading] = useState(false)
@@ -56,7 +58,7 @@ export function PropertyOwnerDashboard() {
     try {
       setPropertiesLoading(true)
       setError('')
-      
+
       const { data, error } = await supabase
         .from('properties')
         .select('*')
@@ -66,6 +68,17 @@ export function PropertyOwnerDashboard() {
       if (error) {
         throw error
       }
+
+      await Promise.all(data.map(async (property) => {
+        if (property.images && property.images.length > 0) {
+          const signedImageUrls = await Promise.all(
+            property.images.map(async (imgPath) => {
+              return await getSignedUrl(imgPath)
+            })
+          )
+          property.images = signedImageUrls
+        }
+      }))
 
       setProperties(data || [])
     } catch (err) {
@@ -155,163 +168,169 @@ export function PropertyOwnerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-blue-100/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Tableau de bord - Propriétaire
-              </h1>
-              <p className="text-sm text-gray-600">
-                Bienvenue {user?.full_name || user?.email}
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Link to="/profile">
-                <Button variant="outline" size="sm">
-                  Mon profil
-                </Button>
-              </Link>
-              <Button 
-                onClick={signOut}
-                variant="outline"
-              >
-                Se déconnecter
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {view === 'list' && (
-          <div className="space-y-6">
-            {/* Action Bar */}
+    <div className="min-h-screen bg-white">
+      <div className="relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="relative">
+          <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-3xl font-bold mb-2">
+                  Tableau de bord Propriétaire
+                </h1>
+                <p className="text-white/90 text-lg">
+                  Bienvenue {user?.full_name?.split(' ')[0] || 'propriétaire'} !
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Link to="/profile">
+                  <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                    Profil
+                  </Button>
+                </Link>
+                <Button variant="outline" onClick={signOut} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                  Se déconnecter
+                </Button>
+              </div>
+            </div>
+          </header>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {view === 'list' && (
+          <div className="space-y-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">
                   Mes propriétés
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-lg text-gray-600 mt-2">
                   Gérez vos propriétés et suivez leurs performances
                 </p>
               </div>
-              <div className="flex space-x-3">
-                <Button 
+              <div className="flex space-x-4">
+                <Button
                   onClick={handleManageFinances}
                   variant="outline"
-                  className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                  className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 px-6 py-3"
                 >
                   Gestion financière
                 </Button>
-                <Button 
+                <Button
                   onClick={handleGenerateQuotes}
                   variant="outline"
-                  className="border-green-200 text-green-700 hover:bg-green-50"
+                  className="rounded-xl border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 px-6 py-3"
                 >
                   Générer un devis
                 </Button>
-                <Button 
+                <Button
                   onClick={handleAddProperty}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl px-6 py-3 font-medium"
                 >
                   Ajouter une propriété
                 </Button>
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    Propriétés totales
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
+                    <Building className="h-4 w-4" />
+                    <span>Propriétés totales</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-bold text-gray-900">
                     {metricsLoading ? '...' : metrics.totalProperties}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-gray-500 mt-1">
                     {metricsLoading ? 'Chargement...' : 'Total de vos biens'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    Propriétés approuvées
+              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Propriétés approuvées</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-bold text-green-600">
                     {metricsLoading ? '...' : metrics.approvedProperties}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-gray-500 mt-1">
                     {metricsLoading ? 'Chargement...' : 'Validées par PJ'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    Revenus ce mois
+              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
+                    <Euro className="h-4 w-4 text-blue-600" />
+                    <span>Revenus ce mois</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-bold text-blue-600">
                     {metricsLoading ? '...' : formatRevenue(metrics.monthlyRevenue)}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-gray-500 mt-1">
                     {metricsLoading ? 'Chargement...' : 'Commissions perçues'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    Taux d'occupation
+              <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 hover:shadow-lg transition-all duration-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600 flex items-center space-x-2">
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                    <span>Taux d'occupation</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-bold text-purple-600">
                     {metricsLoading ? '...' : formatOccupationRate(metrics.occupationRate)}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-gray-500 mt-1">
                     {metricsLoading ? 'Chargement...' : 'Ce mois-ci'}
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className="bg-white/80 backdrop-blur-sm border-white/50 shadow-md">
-              <CardHeader className="border-b border-gray-100/50">
-                <CardTitle className="text-gray-800">Liste des propriétés</CardTitle>
+            <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-gray-100 shadow-lg">
+              <CardHeader className="border-b border-gray-100 pb-6">
+                <CardTitle className="text-2xl font-semibold text-gray-900">Liste des propriétés</CardTitle>
               </CardHeader>
-              <CardContent className="bg-white/50">
+              <CardContent className="p-6">
                 {propertiesLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="text-gray-500">Chargement des propriétés...</div>
+                  <div className="flex justify-center py-12">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto"></div>
+                      <p className="mt-4 text-gray-600">Chargement des propriétés...</p>
+                    </div>
                   </div>
                 ) : error ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700">{error}</p>
-                    <Button 
-                      onClick={loadProperties} 
-                      variant="outline" 
-                      className="mt-2"
-                    >
-                      Réessayer
-                    </Button>
-                  </div>
+                  <Card className="rounded-2xl border-red-200 bg-red-50">
+                    <CardContent className="p-6 text-center">
+                      <p className="text-red-700 mb-4">{error}</p>
+                      <Button
+                        onClick={loadProperties}
+                        variant="outline"
+                        className="rounded-xl border-red-300 text-red-700 hover:bg-red-100"
+                      >
+                        Réessayer
+                      </Button>
+                    </CardContent>
+                  </Card>
                 ) : (
-                  <PropertyList 
+                  <PropertyList
                     properties={properties}
                     onEdit={handleEditProperty}
                     onManageCalendar={handleManageCalendar}

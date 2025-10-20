@@ -190,18 +190,49 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative">
-      <div className="absolute left-4 top-4 z-40">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="flex items-center space-x-2 px-3 py-1 text-sm"
-        >
-          <span className="mr-1">←</span>
-          <span>Retour</span>
-        </Button>
+    <div className="min-h-screen bg-white flex">
+      <div className="flex-1 relative bg-gradient-to-r from-[#62cff4] to-[#2c67f2] flex items-center justify-center p-8">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="relative text-center text-white max-w-md">
+          <div className="mb-8">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm text-white font-bold text-2xl mx-auto mb-6">
+              PJ
+            </div>
+            <h1 className="text-4xl font-bold mb-4">Paris Janitor</h1>
+            <p className="text-xl text-white/90">
+              Gestion locative simplifiée en France
+            </p>
+          </div>
+          <div className="space-y-4 text-left">
+            <div className="flex items-center space-x-3">
+              <div className="h-2 w-2 rounded-full bg-white/80"></div>
+              <span className="text-white/90">Propriétaires, voyageurs et prestataires</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-2 w-2 rounded-full bg-white/80"></div>
+              <span className="text-white/90">Commission de seulement 20%</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-2 w-2 rounded-full bg-white/80"></div>
+              <span className="text-white/90">Support client 24h/7j</span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md relative">
+          <div className="absolute -top-4 -left-4 z-10">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 px-3 py-2 rounded-xl border-gray-200 hover:bg-gray-50"
+            >
+              <span>←</span>
+              <span>Retour</span>
+            </Button>
+          </div>
       {isDevelopment && (
         <div className="w-1/4 fixed bottom-16 left-2 z-50 space-y-2">
           <div className="flex space-x-2">
@@ -230,7 +261,7 @@ export function AuthPage() {
               <div className="flex items-center space-x-2">
                 <Select 
                   value={selectedDevUserType} 
-                  onValueChange={setSelectedDevUserType}
+                  onValueChange={(value: 'property_owner' | 'traveler' | 'service_provider') => setSelectedDevUserType(value)}
                 >
                   <SelectTrigger className="h-7 text-xs flex-1">
                     <SelectValue />
@@ -299,149 +330,148 @@ export function AuthPage() {
           </div>
         </div>
       )}
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {isLogin ? 'Connexion' : 'Inscription'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {isLogin ? 'Connectez-vous à votre compte' : 'Créez votre compte Paris Janitor'}
-          </p>
-        </div>
+          <div className="max-w-md w-full space-y-8">
+            <div className="text-center">
+              <h2 className="mt-6 text-4xl font-bold text-gray-900">
+                {isLogin ? 'Connexion' : 'Inscription'}
+              </h2>
+              <p className="mt-4 text-lg text-gray-600">
+                {isLogin ? 'Connectez-vous à votre compte' : 'Créez votre compte Paris Janitor'}
+              </p>
+            </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>{isLogin ? 'Se connecter' : 'S\'inscrire'}</CardTitle>
-                <CardDescription>
+            <Card className="rounded-2xl bg-white/80 backdrop-blur-sm border-gray-100 shadow-xl">
+              <CardHeader className="text-center pb-6">
+                <CardTitle className="text-2xl font-bold text-gray-900">
+                  {isLogin ? 'Se connecter' : 'S\'inscrire'}
+                </CardTitle>
+                <CardDescription className="text-gray-600 text-base">
                   {isLogin
                     ? 'Entrez vos identifiants pour accéder à votre compte'
                     : 'Remplissez les informations pour créer votre compte'
                   }
                 </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setEmail(e.target.value)
-                    if (error) setError('')
-                    if (successMessage) setSuccessMessage('')
-                  }}
-                  placeholder="Entrez votre email"
-                  autoComplete="off"
-                  className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${error && !email.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                    }`}
-                  required
-                />
-              </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setEmail(e.target.value)
+                          if (error) setError('')
+                          if (successMessage) setSuccessMessage('')
+                        }}
+                        placeholder="Entrez votre email"
+                        autoComplete="off"
+                        className={`mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${error && !email.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                          }`}
+                        required
+                      />
+                    </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setPassword(e.target.value)
-                    if (error) setError('')
-                    if (successMessage) setSuccessMessage('')
-                  }}
-                  placeholder="Entrez votre mot de passe"
-                  autoComplete="new-password"
-                  className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${error && !password.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                    }`}
-                  required
-                />
-              </div>
+                    <div>
+                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">Mot de passe</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setPassword(e.target.value)
+                          if (error) setError('')
+                          if (successMessage) setSuccessMessage('')
+                        }}
+                        placeholder="Entrez votre mot de passe"
+                        autoComplete="new-password"
+                        className={`mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${error && !password.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                          }`}
+                        required
+                      />
+                    </div>
 
 
-              {!isLogin && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Nom complet</Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      value={fullName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFullName(e.target.value)
-                        if (error) setError('')
-                        if (successMessage) setSuccessMessage('')
-                      }}
-                      className={`focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200 ${error && !fullName.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                        }`}
-                      required
-                    />
-                  </div>
+                    {!isLogin && (
+                      <>
+                        <div>
+                          <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">Nom complet</Label>
+                          <Input
+                            id="fullName"
+                            type="text"
+                            value={fullName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              setFullName(e.target.value)
+                              if (error) setError('')
+                              if (successMessage) setSuccessMessage('')
+                            }}
+                            className={`mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 ${error && !fullName.trim() ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                              }`}
+                            required
+                          />
+                        </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Téléphone</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setPhone(e.target.value)
-                        if (error) setError('')
-                        if (successMessage) setSuccessMessage('')
-                      }}
-                      className="focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200"
-                    />
-                  </div>
+                        <div>
+                          <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Téléphone</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={phone}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              setPhone(e.target.value)
+                              if (error) setError('')
+                              if (successMessage) setSuccessMessage('')
+                            }}
+                            className="mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+                          />
+                        </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Type de compte</Label>
-                    <Select
-                      value={role}
-                      onValueChange={(value: 'property_owner' | 'traveler' | 'service_provider') => setRole(value)}
-                    >
-                      <SelectTrigger className="focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:border-blue-500 transition-all duration-200">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="z-10 bg-white">
-                        <SelectItem value="traveler">Voyageur</SelectItem>
-                        <SelectItem value="property_owner">Propriétaire</SelectItem>
-                        <SelectItem value="service_provider">Prestataire</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-
-              {successMessage && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start space-x-2">
-                  <svg className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-green-700 text-sm">{successMessage}</span>
-                </div>
-              )}
-
-              {error && (
-                <div className={`border rounded-lg p-4 flex items-start space-x-3 ${error.includes('Échec de connexion') || error.includes('Impossible de se connecter') || error.includes('Délai d\'attente')
-                  ? 'bg-red-100 border-red-300 shadow-lg'
-                  : 'bg-red-50 border-red-200'
-                  }`}>
-                  <div className="flex-shrink-0">
-                    {error.includes('Échec de connexion') || error.includes('Impossible de se connecter') ? (
-                      <div className="w-5 h-5 text-red-600 animate-pulse">🔌</div>
-                    ) : error.includes('Délai d\'attente') ? (
-                      <div className="w-5 h-5 text-red-600">⏱️</div>
-                    ) : (
-                      <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                        <div>
+                          <Label htmlFor="role" className="text-sm font-medium text-gray-700">Type de compte</Label>
+                          <Select
+                            value={role}
+                            onValueChange={(value: 'property_owner' | 'traveler' | 'service_provider') => setRole(value)}
+                          >
+                            <SelectTrigger className="mt-1 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="z-10 bg-white rounded-xl border-gray-200 shadow-lg">
+                              <SelectItem value="traveler">✈️ Voyageur</SelectItem>
+                              <SelectItem value="property_owner">🏠 Propriétaire</SelectItem>
+                              <SelectItem value="service_provider">🔧 Prestataire</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
                     )}
-                  </div>
+
+                  {successMessage && (
+                    <div className="bg-green-50/50 border border-green-200 rounded-xl p-4 flex items-start space-x-3">
+                      <svg className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-green-700 font-medium">{successMessage}</span>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className={`border rounded-xl p-4 flex items-start space-x-3 ${error.includes('Échec de connexion') || error.includes('Impossible de se connecter') || error.includes('Délai d\'attente')
+                      ? 'bg-red-100/80 border-red-300 shadow-lg'
+                      : 'bg-red-50/80 border-red-200'
+                      }`}>
+                      <div className="flex-shrink-0">
+                        {error.includes('Échec de connexion') || error.includes('Impossible de se connecter') ? (
+                          <div className="w-5 h-5 text-red-600 animate-pulse">🔌</div>
+                        ) : error.includes('Délai d\'attente') ? (
+                          <div className="w-5 h-5 text-red-600">⏱️</div>
+                        ) : (
+                          <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
+                      </div>
                   <div className="flex-1">
                     <span className="text-red-700 text-sm leading-relaxed">{error}</span>
                     {(error.includes('Échec de connexion') || error.includes('Impossible de se connecter')) && (
@@ -474,45 +504,48 @@ export function AuthPage() {
                 </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>{isLogin ? 'Connexion...' : 'Inscription...'}</span>
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white font-semibold py-4 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      disabled={isSubmitting}
+                    >
+                    {isSubmitting ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>{isLogin ? 'Connexion...' : 'Inscription...'}</span>
+                      </div>
+                    ) : (
+                      <span>{isLogin ? '🔑 Se connecter' : '🚀 S\'inscrire'}</span>
+                    )}
+                  </Button>
                   </div>
-                ) : (
-                  <span>{isLogin ? '🔑 Se connecter' : '🚀 S\'inscrire'}</span>
-                )}
-              </Button>
-            </form>
+                </form>
 
-            <div className="mt-4 text-center">
-              <Button
-                variant="link"
-                className="focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-all duration-200"
-                onClick={() => {
-                  setIsLogin(!isLogin)
-                  setError('')
-                  setSuccessMessage('')
-                  setEmail('')
-                  setPassword('')
-                  setFullName('')
-                  setPhone('')
-                  setRole('traveler')
-                }}
-              >
-                {isLogin
-                  ? 'Pas de compte ? S\'inscrire'
-                  : 'Déjà un compte ? Se connecter'
-                }
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="mt-8 text-center">
+                  <Button
+                    variant="link"
+                    className="text-gray-600 hover:text-blue-600 transition-all duration-200 font-medium"
+                    onClick={() => {
+                      setIsLogin(!isLogin)
+                      setError('')
+                      setSuccessMessage('')
+                      setEmail('')
+                      setPassword('')
+                      setFullName('')
+                      setPhone('')
+                      setRole('traveler')
+                    }}
+                  >
+                    {isLogin
+                      ? 'Pas de compte ? S\'inscrire'
+                      : 'Déjà un compte ? Se connecter'
+                    }
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )
