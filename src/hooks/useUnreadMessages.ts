@@ -16,7 +16,6 @@ export function useUnreadMessages() {
 
     const fetchUnreadCount = async () => {
       try {
-        // Get chat rooms where the user is a participant
         const { data: chatRooms, error: roomsError } = await supabase
           .from('chat_rooms')
           .select('id')
@@ -32,7 +31,6 @@ export function useUnreadMessages() {
 
         const roomIds = chatRooms.map(room => room.id)
 
-        // Count unread messages in these rooms
         const { count, error: messagesError } = await supabase
           .from('chat_messages')
           .select('*', { count: 'exact', head: true })
@@ -53,7 +51,6 @@ export function useUnreadMessages() {
 
     fetchUnreadCount()
 
-    // Subscribe to real-time updates
     const subscription = supabase
       .channel('unread_messages')
       .on(

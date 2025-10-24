@@ -139,6 +139,18 @@ export const db = {
       
       if (error) throw error
       return data as Booking
+    },
+
+    async cancel(bookingId: string) {
+      const { data, error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('id', bookingId)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data as Booking
     }
   },
 
@@ -206,17 +218,14 @@ export const db = {
         .eq('is_active', true)
         .eq('profiles.profile_validated', true)
       
-      // Search in name and description
       if (searchQuery) {
         query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
       }
       
-      // Filter by category
       if (filters?.category) {
         query = query.eq('category', filters.category)
       }
       
-      // Filter by price range
       if (filters?.priceRange) {
         if (filters.priceRange.min) {
           query = query.gte('base_price', filters.priceRange.min)

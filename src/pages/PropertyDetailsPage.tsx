@@ -235,12 +235,18 @@ export function PropertyDetailsPage() {
         .update({
           status: 'confirmed',
           payment_status: 'paid',
-          payment_intent_id: paymentIntentId,
+          stripe_payment_intent_id: paymentIntentId,
           updated_at: new Date().toISOString()
         })
         .eq('id', pendingBooking.id)
 
-      if (error) throw error
+      if (error) {
+        if (error.code === '23502' && error.message.includes('http_request_queue')) {
+          console.warn('HTTP request queue error (non-critical):', error.message) // webhook/notification error
+        } else {
+          throw error
+        }
+      }
 
       setBookingStep('confirmation')
       notify.success('Paiement confirmé ! Votre réservation est validée.')

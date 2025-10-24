@@ -4,6 +4,8 @@ import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { StorageImage } from '@/components/ui/storage-image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { BookingList } from '@/components/BookingList'
 import { supabase } from '../lib/supabase'
 import { handleAsyncOperation } from '../lib/error-handling'
 
@@ -25,6 +27,7 @@ export function TravelerDashboard() {
   const { user, signOut, loading } = useAuthStore()
   const [properties, setProperties] = useState<Property[]>([])
   const [propertiesLoading, setPropertiesLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("properties")
 
   const loadProperties = useCallback(async () => {
     await handleAsyncOperation(
@@ -152,7 +155,15 @@ export function TravelerDashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20">
+                  <Button 
+                    variant="outline" 
+                    className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    onClick={() => {
+                      setActiveTab("bookings");
+                      const bookingsSection = document.getElementById('bookings-section');
+                      bookingsSection?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
                     Voir mes réservations
                   </Button>
                 </CardContent>
@@ -181,98 +192,115 @@ export function TravelerDashboard() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mb-12">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">Logements disponibles</h2>
-              <p className="text-gray-600 mt-2">Découvrez nos meilleures offres du moment</p>
-            </div>
-            <Link to="/search">
-              <Button variant="outline" className="flex items-center gap-2 rounded-lg border-gray-300 hover:bg-gray-50">
-                Voir tout
-                <span>→</span>
-              </Button>
-            </Link>
-          </div>
-
-          {propertiesLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <div className="aspect-[4/3] bg-gray-200 rounded-t-lg"></div>
-                  <div className="p-6 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : properties.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                <span className="text-4xl">🏠</span>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" id="bookings-section">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="properties" className="flex items-center gap-2">
+              🏠 Logements disponibles
+            </TabsTrigger>
+            <TabsTrigger value="bookings" className="flex items-center gap-2">
+              📅 Mes réservations
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="properties">
+            <div className="mb-12">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900">Logements disponibles</h2>
+                  <p className="text-gray-600 mt-2">Découvrez nos meilleures offres du moment</p>
+                </div>
+                <Link to="/search">
+                  <Button variant="outline" className="flex items-center gap-2 rounded-lg border-gray-300 hover:bg-gray-50">
+                    Voir tout
+                    <span>→</span>
+                  </Button>
+                </Link>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun logement disponible</h3>
-              <p className="text-gray-600">Revenez plus tard pour découvrir nos nouvelles offres</p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {properties.map((property) => (
-                <Link key={property.id} to={`/property/${property.id}`}>
-                  <Card className="group cursor-pointer bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      {property.images && property.images.length > 0 ? (
-                        <StorageImage
-                          src={property.images[0]}
-                          alt={property.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                          <span className="text-4xl opacity-40">🏠</span>
-                        </div>
-                      )}
-                      <div className="absolute top-3 left-3">
-                        <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold text-gray-700">
-                          {property.city}
-                        </div>
+
+              {propertiesLoading ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(6)].map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                      <div className="aspect-[4/3] bg-gray-200 rounded-t-lg"></div>
+                      <div className="p-6 space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
                       </div>
-                    </div>
-                    
-                    <div className="p-6">
-                      <div className="mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-[#2c67f2] transition-colors">
-                          {property.title}
-                        </h3>
-                        <p className="text-sm text-gray-600">{property.address}</p>
-                      </div>
-                      
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {property.description || 'Logement confortable et bien situé'}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <span>👥 {property.capacity} personnes</span>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-bold text-gray-900">
-                              {property.nightly_rate}€
-                            </span>
-                            <span className="text-sm text-gray-600">/nuit</span>
+                    </Card>
+                  ))}
+                </div>
+              ) : properties.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span className="text-4xl">🏠</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucun logement disponible</h3>
+                  <p className="text-gray-600">Revenez plus tard pour découvrir nos nouvelles offres</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {properties.map((property) => (
+                    <Link key={property.id} to={`/property/${property.id}`}>
+                      <Card className="group cursor-pointer bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          {property.images && property.images.length > 0 ? (
+                            <StorageImage
+                              src={property.images[0]}
+                              alt={property.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                              <span className="text-4xl opacity-40">🏠</span>
+                            </div>
+                          )}
+                          <div className="absolute top-3 left-3">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold text-gray-700">
+                              {property.city}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))}
+                        
+                        <div className="p-6">
+                          <div className="mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-[#2c67f2] transition-colors">
+                              {property.title}
+                            </h3>
+                            <p className="text-sm text-gray-600">{property.address}</p>
+                          </div>
+                          
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                            {property.description || 'Logement confortable et bien situé'}
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>👥 {property.capacity} personnes</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-xl font-bold text-gray-900">
+                                  {property.nightly_rate}€
+                                </span>
+                                <span className="text-sm text-gray-600">/nuit</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="bookings">
+            <BookingList />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   )

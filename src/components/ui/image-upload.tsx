@@ -34,7 +34,6 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, type }: Ima
 
       for (const img of images) {
         try {
-          // If the image looks like a storage path (no protocol), generate signed URL
           if (!img.startsWith('http')) {
             const signed = await getSignedUrl(img)
             resolved.push({ url: signed })
@@ -43,7 +42,6 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, type }: Ima
           }
         } catch (err) {
           console.error('Error resolving image URL', err)
-          // push a placeholder entry to keep indexes stable
           resolved.push({ url: '' , hasError: true, errorMessage: 'Impossible de charger l\'image' })
         }
       }
@@ -64,6 +62,9 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, type }: Ima
 
     setIsUploading(true)
     
+    const tempItems: ImageItem[] = []
+    const validFiles: File[] = []
+    
     for (const file of acceptedFiles) {
       const validationError = validateImageFile(file)
       if (validationError) {
@@ -71,54 +72,62 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, type }: Ima
         continue
       }
 
-      let compressedFile: File | undefined
-      
       try {
-        compressedFile = await compressImage(file)
+        const compressedFile = await compressImage(file)
+        validFiles.push(compressedFile)
         
         const tempItem: ImageItem = {
           url: URL.createObjectURL(compressedFile),
           file: compressedFile,
           isUploading: true
         }
+        tempItems.push(tempItem)
+      } catch (error) {
+        console.error('Error compressing image:', error)
+        toast.error('Erreur lors de la compression de l\'image')
+      }
+    }
+    
+    setImageItems(prev => [...prev, ...tempItems])
+    
+    const newImagePaths: string[] = []
+    
+    for (const file of validFiles) {
+      try {
+        const result = await uploadImage(file, type)
         
-        setImageItems(prev => [...prev, tempItem])
-
-        const result = await uploadImage(compressedFile, type)
-
-        // Replace temp item with a signed URL for display, but store the path in parent state
         setImageItems(prev => 
           prev.map(item => 
-            item.file === compressedFile 
+            item.file === file 
               ? { url: result.url, isUploading: false, hasError: false }
               : item
           )
         )
-
-        const newImages = [...images, result.path]
-        onImagesChange(newImages)
         
+        newImagePaths.push(result.path)
         toast.success('Image téléchargée avec succès')
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erreur lors du téléchargement'
         
-        if (compressedFile) {
-          setImageItems(prev => 
-            prev.map(item => 
-              item.file === compressedFile 
-                ? { 
-                    ...item, 
-                    isUploading: false, 
-                    hasError: true, 
-                    errorMessage 
-                  }
-                : item
-            )
+        setImageItems(prev => 
+          prev.map(item => 
+            item.file === file 
+              ? { 
+                  ...item, 
+                  isUploading: false, 
+                  hasError: true, 
+                  errorMessage 
+                }
+              : item
           )
-        }
+        )
         
         toast.error(errorMessage)
       }
+    }
+    
+    if (newImagePaths.length > 0) {
+      onImagesChange([...images, ...newImagePaths])
     }
     
     setIsUploading(false)
@@ -128,9 +137,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, type }: Ima
     const newImageItems = imageItems.filter((_, i) => i !== index)
     setImageItems(newImageItems)
     
-    const newImages = newImageItems
-      .filter(item => !item.isUploading && !item.hasError)
-      .map(item => item.url)
+    const newImages = images.filter((_, i) => i !== index)
     onImagesChange(newImages)
   }
 
@@ -157,8 +164,9 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5, type }: Ima
         )
       )
 
-  const newImages = [...images, result.path]
-  onImagesChange(newImages)
+      const newImages = [...images]
+      newImages[index] = result.path
+      onImagesChange(newImages)
       
       toast.success('Image téléchargée avec succès')
     } catch (error) {

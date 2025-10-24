@@ -70,8 +70,6 @@ export class ServicePricingCalculator {
       }
 
       case 'variable': {
-        // For variable pricing, use base price as starting point
-        // Additional logic can be implemented based on specific service requirements
         basePrice = service.base_price * quantity
         breakdown.push({
           label: `${service.name} (tarif variable) × ${quantity}`,
