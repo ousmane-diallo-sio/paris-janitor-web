@@ -209,7 +209,7 @@ export const ServiceManagement: React.FC<ServiceManagementProps> = ({
             description: formData.description,
             category: formData.category,
             price_type: formData.price_type,
-            base_price: Math.round(parseFloat(formData.base_price) * 100),
+            base_price: parseFloat(formData.base_price),
             duration_minutes: parseInt(formData.duration_minutes),
             is_vip_only: formData.is_vip_only,
             qualifications_required: formData.qualifications_required,
@@ -257,7 +257,7 @@ export const ServiceManagement: React.FC<ServiceManagementProps> = ({
             description: formData.description,
             category: formData.category,
             price_type: formData.price_type,
-            base_price: Math.round(parseFloat(formData.base_price) * 100),
+            base_price: parseFloat(formData.base_price),
             duration_minutes: parseInt(formData.duration_minutes),
             is_vip_only: formData.is_vip_only,
             qualifications_required: formData.qualifications_required,
@@ -331,7 +331,7 @@ export const ServiceManagement: React.FC<ServiceManagementProps> = ({
   }
 
   const formatPrice = (basePrice: number, priceType: string | null) => {
-    const euros = (basePrice / 100).toFixed(2)
+    const euros = basePrice.toFixed(2)
     switch (priceType) {
       case 'hourly': return `${euros}€/h`
       case 'distance': return `${euros}€/km`
@@ -357,7 +357,7 @@ export const ServiceManagement: React.FC<ServiceManagementProps> = ({
       description: service.description || '',
       category: service.category,
       price_type: service.price_type || 'fixed',
-      base_price: (service.base_price / 100).toString(),
+      base_price: service.base_price.toString(),
       duration_minutes: (service.duration_minutes || 60).toString(),
       is_vip_only: service.is_vip_only || false,
       qualifications_required: service.qualifications_required || [],

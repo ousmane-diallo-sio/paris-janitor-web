@@ -17,6 +17,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import { NetworkStatusIndicator } from '@/components/NetworkStatus'
 import { FloatingChatButton } from '@/components/chat/FloatingChatButton'
 import Footer from '@/components/common/Footer'
+import { ScrollToTop } from '@/components/common/ScrollToTop'
 
 function App() {
   const { initialize, loading } = useAuthStore()
@@ -39,6 +40,10 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
+        <ScrollToTop 
+          behavior="smooth"
+          preserveScrollOn={[]}
+        />
         <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/" element={<HomePage />} />

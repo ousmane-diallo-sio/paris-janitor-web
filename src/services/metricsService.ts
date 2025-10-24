@@ -63,7 +63,7 @@ export async function calculateOwnerMetrics(ownerId: string): Promise<OwnerMetri
     return {
       totalProperties,
       approvedProperties,
-      monthlyRevenue: Math.round(monthlyRevenue / 100),
+      monthlyRevenue: Math.round(monthlyRevenue * 100) / 100,
       occupationRate: Math.round(occupationRate * 100) / 100
     }
   } catch (error) {

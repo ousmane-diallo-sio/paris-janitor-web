@@ -5,15 +5,22 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const formatCurrency = (amountCents: number, currencyCode: string = 'EUR'): string => {
+export const formatCurrency = (amount: number, currencyCode: string = 'EUR'): string => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: currencyCode,
-  }).format(amountCents / 100)
+  }).format(amount)
 }
 
-export const parseCurrencyToCents = (amount: number): number => {
-  return Math.round(amount * 100)
+export const formatEuros = (amount: number): string => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(amount)
+}
+
+export const parseEurosToNumber = (amount: number): number => {
+  return Math.round(amount * 100) / 100
 }
 
 export const formatDate = (date: string | Date): string => {

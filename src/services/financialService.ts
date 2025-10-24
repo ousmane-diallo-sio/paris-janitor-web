@@ -144,7 +144,7 @@ export async function getSubscriptionData(ownerId: string): Promise<Subscription
     if (!subscription) {
       return {
         isActive: false,
-        amount: 10000, // 100€ in cents
+        amount: 100, // 100€ in euros
         nextPaymentDate: null,
         status: 'inactive'
       }
@@ -278,9 +278,9 @@ async function getMonthlyBreakdown(propertyIds: string[], year: number) {
     
     breakdown.push({
       month: months[month],
-      revenue: Math.round(revenue / 100), // Convert from cents to euros
-      expenses: Math.round(expenses / 100),
-      netIncome: Math.round((revenue - commissions - expenses) / 100)
+      revenue: Math.round(revenue * 100) / 100, // Round euros to 2 decimal places
+      expenses: Math.round(expenses * 100) / 100,
+      netIncome: Math.round((revenue - commissions - expenses) * 100) / 100
     })
   }
 
@@ -317,7 +317,7 @@ async function getExpenseCategories(propertyIds: string[], startDate: Date, endD
 
   const categories = Object.entries(categoryTotals).map(([category, amount]) => ({
     category: getCategoryDisplayName(category),
-    amount: Math.round(amount / 100), // Convert from cents to euros
+    amount: Math.round(amount * 100) / 100, // Round euros to 2 decimal places
     percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0
   }))
 
@@ -333,8 +333,8 @@ async function getTopPerformingProperties(properties: Property[], startDate: Dat
       
       return {
         property,
-        revenue: Math.round(revenue / 100), // Convert from cents to euros
-        commissions: Math.round(commissions / 100)
+        revenue: Math.round(revenue * 100) / 100, // Round euros to 2 decimal places
+        commissions: Math.round(commissions * 100) / 100
       }
     })
   )

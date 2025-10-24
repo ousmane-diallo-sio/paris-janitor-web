@@ -340,13 +340,12 @@ export function QuoteGenerator({ ownerId }: QuoteGeneratorProps) {
         const updatedItem = { ...item, [field]: value }
         
         if (field === 'quantity' || field === 'unitPrice') {
-          // Convert unit price from euros to cents for internal storage
-          const unitPriceInCents = field === 'unitPrice' 
-            ? Math.round(Number(value) * 100)
+          const unitPriceInEuros = field === 'unitPrice' 
+            ? Number(value)
             : updatedItem.unitPrice
           
-          updatedItem.unitPrice = unitPriceInCents
-          updatedItem.total = Number(updatedItem.quantity) * unitPriceInCents
+          updatedItem.unitPrice = unitPriceInEuros
+          updatedItem.total = Number(updatedItem.quantity) * unitPriceInEuros
         }
         
         return updatedItem
@@ -370,7 +369,7 @@ export function QuoteGenerator({ ownerId }: QuoteGeneratorProps) {
       name: service.name,
       description: service.description || '',
       quantity: 1,
-      unitPrice: service.base_price, // Already in cents from database
+      unitPrice: service.base_price, // Already in euros from database
       total: service.base_price
     }
     
@@ -459,7 +458,7 @@ export function QuoteGenerator({ ownerId }: QuoteGeneratorProps) {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'EUR'
-    }).format(amount / 100)
+    }).format(amount)
   }
 
   const loadSavedQuote = (savedQuote: QuoteData & { id: string; createdAt: string }) => {
@@ -706,7 +705,7 @@ export function QuoteGenerator({ ownerId }: QuoteGeneratorProps) {
                           type="number"
                           min="0"
                           step="0.01"
-                          value={(item.unitPrice / 100).toFixed(2)}
+                          value={item.unitPrice.toFixed(2)}
                           onChange={(e) => updateQuoteItem(item.id, 'unitPrice', Number(e.target.value))}
                           className="text-sm"
                         />
