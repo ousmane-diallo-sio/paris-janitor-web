@@ -7,14 +7,15 @@ import { PropertyList } from '@/components/properties/PropertyList'
 import { UserCalendar } from '@/components/calendar/UserCalendar'
 import { FinancialDashboard } from '@/components/financial/FinancialDashboard'
 import { QuoteGenerator } from '@/components/quotes/QuoteGenerator'
+import { InterventionList } from '@/components/interventions'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { calculateOwnerMetrics, formatRevenue, formatOccupationRate, type OwnerMetrics } from '@/services/metricsService'
 import type { Property } from '@/types/database'
 import { getSignedUrl } from '../services/imageService'
-import { Building, CheckCircle, Euro, TrendingUp, Home, BarChart3, FileText } from 'lucide-react'
+import { Building, CheckCircle, Euro, TrendingUp, Home, BarChart3, FileText, Wrench } from 'lucide-react'
 
-type ViewMode = 'dashboard' | 'calendar' | 'finances' | 'quotes';
+type ViewMode = 'dashboard' | 'calendar' | 'finances' | 'quotes' | 'interventions';
 
 export function PropertyOwnerDashboard() {
   const { user, signOut, loading } = useAuthStore()
@@ -149,7 +150,6 @@ export function PropertyOwnerDashboard() {
   const handleEditProperty = (property: Property) => {
     setShowPropertyForm(true)
     setEditingProperty(property)
-    setSearchParams({ view: 'calendar', propertyId: property.id })
   }
 
   const handleManageCalendar = (property: Property) => {
@@ -241,6 +241,16 @@ export function PropertyOwnerDashboard() {
             >
               <FileText className="w-4 h-4 mr-2 inline" />
               Devis
+            </button>
+            <button
+              onClick={() => handleTabChange('interventions')}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'interventions'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+              <Wrench className="w-4 h-4 mr-2 inline" />
+              Interventions
             </button>
           </nav>
         </div>
@@ -398,6 +408,13 @@ export function PropertyOwnerDashboard() {
 
         {activeTab === 'quotes' && (
           <QuoteGenerator ownerId={user!.id} />
+        )}
+
+        {activeTab === 'interventions' && (
+          <InterventionList 
+            userRole="property_owner" 
+            userId={user!.id}
+          />
         )}
 
         {activeTab === 'calendar' && editingProperty && (

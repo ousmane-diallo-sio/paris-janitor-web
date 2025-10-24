@@ -196,8 +196,6 @@ export function PropertyDetailsPage() {
         check_out: bookingData.checkOut,
         total_amount: total,
         commission_amount: bookingData.commissionAmount,
-        status: 'pending',
-        payment_status: 'pending',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
@@ -233,8 +231,6 @@ export function PropertyDetailsPage() {
       const { error } = await supabase
         .from('bookings')
         .update({
-          status: 'confirmed',
-          payment_status: 'paid',
           stripe_payment_intent_id: paymentIntentId,
           updated_at: new Date().toISOString()
         })
@@ -266,8 +262,6 @@ export function PropertyDetailsPage() {
       await supabase
         .from('bookings')
         .update({
-          status: 'cancelled',
-          payment_status: 'failed',
           updated_at: new Date().toISOString()
         })
         .eq('id', pendingBooking.id)
@@ -447,7 +441,6 @@ export function PropertyDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav className="flex text-sm text-gray-500">

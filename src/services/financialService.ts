@@ -89,9 +89,8 @@ export async function calculateFinancialData(ownerId: string, period: 'month' | 
     const revenueGrowth = calculateGrowth(currentRevenue, previousRevenue)
     const expenseGrowth = calculateGrowth(currentExpenses, previousExpenses)
 
-    const monthlyBreakdown = period === 'year' 
-      ? await getMonthlyBreakdown(propertyIds, now.getFullYear())
-      : []
+    // Always get monthly breakdown for the current year to show trends
+    const monthlyBreakdown = await getMonthlyBreakdown(propertyIds, now.getFullYear())
 
     const expenseCategories = await getExpenseCategories(propertyIds, startDate, endDate)
     const topPerformingProperties = await getTopPerformingProperties(allProperties, startDate, endDate)
@@ -209,8 +208,6 @@ async function getBookingsForPeriod(propertyIds: string[], startDate: Date, endD
     .in('property_id', propertyIds)
     .gte('check_in', startDate.toISOString())
     .lte('check_out', endDate.toISOString())
-    .in('status', ['confirmed', 'completed'])
-    .eq('payment_status', 'paid')
 
   if (error) throw error
   return data || []

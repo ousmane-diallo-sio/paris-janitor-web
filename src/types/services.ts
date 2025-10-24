@@ -23,6 +23,7 @@ export type PriceType = typeof PRICE_TYPES[keyof typeof PRICE_TYPES]
 // Service Request Status
 export const SERVICE_REQUEST_STATUSES = {
   PENDING: 'pending',
+  PAID: 'paid',
   ACCEPTED: 'accepted',
   REJECTED: 'rejected', 
   IN_PROGRESS: 'in_progress',
@@ -197,10 +198,15 @@ export const getServiceRequestStatusConfig = (status: ServiceRequestStatus) => {
       variant: 'default' as const,
       color: 'yellow'
     },
+    [SERVICE_REQUEST_STATUSES.PAID]: {
+      label: 'Payé - En attente',
+      variant: 'secondary' as const,
+      color: 'blue'
+    },
     [SERVICE_REQUEST_STATUSES.ACCEPTED]: {
       label: 'Accepté',
       variant: 'secondary' as const,
-      color: 'blue'
+      color: 'green'
     },
     [SERVICE_REQUEST_STATUSES.REJECTED]: {
       label: 'Refusé',

@@ -58,13 +58,64 @@ export const db = {
   properties: {
     async getByOwnerId(ownerId: string) {
       const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('owner_id', ownerId)
+        .from('bookings')
+        .select(`
+          *,
+          properties!inner (
+            id,
+            title,
+            owner_id
+          )
+        `)
+        .eq('properties.owner_id', ownerId)
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      return data as Property[]
+      return data as (Booking & { properties: Property })[]
+    },
+
+    async getSubscriptionFees(ownerId: string, year?: number) {
+      const currentYear = year || new Date().getFullYear()
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('payer_id', ownerId)
+        .eq('payment_type', 'subscription')
+        .gte('created_at', `${currentYear}-01-01`)
+        .lt('created_at', `${currentYear + 1}-01-01`)
+      
+      if (error) throw error
+      return data || []
+    },
+
+    async createSubscriptionFee(ownerId: string, amount: number = 10000) {
+      const { data, error } = await supabase
+        .from('payments')
+        .insert({
+          payer_id: ownerId,
+          amount: amount,
+          payment_type: 'subscription',
+          status: 'pending',
+          currency: 'EUR'
+        })
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
+    },
+
+    async getBookedPropertiesByUser(userId: string) {
+      const { data, error } = await supabase
+      .from('bookings')
+      .select('properties (*)')
+      .eq('traveler_id', userId)
+      .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      const props = (data ?? []).map((booking: any) => booking.properties).filter(Boolean) as Property[]
+      const uniqueProperties = Array.from(new Map(props.map(p => [p.id, p])).values())
+      return uniqueProperties as Property[]
     },
 
     async getAvailable(checkIn: string, checkOut: string) {
@@ -142,15 +193,77 @@ export const db = {
     },
 
     async cancel(bookingId: string) {
+      try {
+        const { error } = await supabase
+          .from('bookings')
+          .delete()
+          .eq('id', bookingId)
+        
+        if (error) {
+          if (error.code === '23502' && error.message.includes('http_request_queue')) {
+            console.warn('HTTP request queue error during booking cancellation (non-critical):', error.message)
+            return
+          }
+          throw error
+        }
+      } catch (error) {
+        const dbError = error as { code?: string; message?: string }
+        if (dbError?.code === '23502' && dbError?.message?.includes('http_request_queue')) {
+          console.warn('HTTP request queue error during booking cancellation (non-critical):', dbError.message)
+          return
+        }
+        throw error
+      }
+    }
+  },
+
+  reviews: {
+    async getPropertyRatings(propertyIds: string[]) {
+      if (propertyIds.length === 0) return {}
+
+      interface ReviewWithBooking {
+        rating: number
+        bookings: {
+          property_id: string
+        }
+      }
+
       const { data, error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId)
-        .select()
-        .single()
+        .from('reviews')
+        .select(`
+          rating,
+          bookings!inner(property_id)
+        `)
+        .in('bookings.property_id', propertyIds)
       
-      if (error) throw error
-      return data as Booking
+      if (error) {
+        console.error('Error fetching property ratings:', error)
+        return {}
+      }
+
+      const reviewsData = data as ReviewWithBooking[]
+      
+      // Calculate averages by grouping
+      const propertyRatings: Record<string, number[]> = {}
+      reviewsData?.forEach((review) => {
+        const propertyId = review.bookings.property_id
+        if (!propertyRatings[propertyId]) {
+          propertyRatings[propertyId] = []
+        }
+        propertyRatings[propertyId].push(review.rating)
+      })
+
+      const ratingsMap: Record<string, { averageRating: number, reviewCount: number }> = {}
+      Object.keys(propertyRatings).forEach(propertyId => {
+        const ratings = propertyRatings[propertyId]
+        const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+        ratingsMap[propertyId] = {
+          averageRating: Math.round(average * 10) / 10,
+          reviewCount: ratings.length
+        }
+      })
+
+      return ratingsMap
     }
   },
 
@@ -330,6 +443,141 @@ export const db = {
       
       if (error) throw error
       return data as ServiceRequest
+    },
+
+    async update(id: string, updates: TablesUpdate<'service_requests'>) {
+      const { data, error } = await supabase
+        .from('service_requests')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data as ServiceRequest
+    }
+  },
+
+  interventions: {
+    async getByPropertyId(propertyId: string) {
+      const { data, error } = await supabase
+        .from('interventions')
+        .select(`
+          *,
+          properties(title, address),
+          profiles!interventions_provider_id_fkey(full_name, email)
+        `)
+        .eq('property_id', propertyId)
+        .order('scheduled_date', { ascending: false })
+      
+      if (error) throw error
+      return data
+    },
+
+    async getByProviderId(providerId: string) {
+      const { data, error } = await supabase
+        .from('interventions')
+        .select(`
+          *,
+          properties(title, address, owner_id),
+          profiles!interventions_property_owner_id_fkey(full_name, email)
+        `)
+        .eq('provider_id', providerId)
+        .order('scheduled_date', { ascending: false })
+      
+      if (error) throw error
+      return data
+    },
+
+    async create(intervention: TablesInsert<'interventions'>) {
+      const { data, error } = await supabase
+        .from('interventions')
+        .insert(intervention)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
+    },
+
+    async update(id: string, updates: TablesUpdate<'interventions'>) {
+      const { data, error } = await supabase
+        .from('interventions')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
+    },
+
+    async complete(id: string, reportData: {
+      completion_date: string
+      notes?: string
+      before_photos?: string[]
+      after_photos?: string[]
+      duration_minutes?: number
+      materials_used?: string[]
+      issues_found?: string
+      recommendations?: string
+    }) {
+      const { data, error } = await supabase
+        .from('interventions')
+        .update({
+          ...reportData,
+          status: 'completed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
+    },
+
+    async validate(id: string, ownerId: string) {
+      const { data, error } = await supabase
+        .from('interventions')
+        .update({
+          status: 'validated',
+          validated_by: ownerId,
+          validated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
+    },
+
+    async rate(interventionId: string, rating: {
+      rating: number
+      comment?: string
+      quality_rating: number
+      punctuality_rating: number
+      communication_rating: number
+    }) {
+      const { data, error } = await supabase
+        .from('interventions')
+        .update({
+          rating: rating.rating,
+          rating_comment: rating.comment,
+          quality_rating: rating.quality_rating,
+          punctuality_rating: rating.punctuality_rating,
+          communication_rating: rating.communication_rating,
+          rated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', interventionId)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
     }
   }
 }

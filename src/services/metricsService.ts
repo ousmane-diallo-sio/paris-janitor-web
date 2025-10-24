@@ -49,8 +49,6 @@ export async function calculateOwnerMetrics(ownerId: string): Promise<OwnerMetri
       .in('property_id', propertyIds)
       .gte('check_in', monthStart.toISOString())
       .lte('check_out', monthEnd.toISOString())
-      .in('status', ['confirmed', 'completed'])
-      .eq('payment_status', 'paid')
 
     if (bookingsError) throw bookingsError
 

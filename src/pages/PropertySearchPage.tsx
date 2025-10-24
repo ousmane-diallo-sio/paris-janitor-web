@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Search, MapPin, Calendar, Euro, Users, Wifi, Car, Coffee } from 'lucide-react'
+import { Search, MapPin, Calendar, Euro, Users, Wifi, Car, Coffee, ArrowLeft } from 'lucide-react'
 import { StorageImage } from '@/components/ui/storage-image'
 import type { Property } from '@/types/database'
 
@@ -40,19 +40,19 @@ export function PropertySearchPage() {
     let filtered = properties
 
     if (filters.location) {
-      filtered = filtered.filter(property => 
+      filtered = filtered.filter(property =>
         property.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
         property.address?.toLowerCase().includes(filters.location.toLowerCase())
       )
     }
 
     if (filters.guests) {
-      filtered = filtered.filter(property => 
+      filtered = filtered.filter(property =>
         (property.capacity || 0) >= filters.guests
       )
     }
 
-    filtered = filtered.filter(property => 
+    filtered = filtered.filter(property =>
       (property.nightly_rate || 0) >= filters.minPrice &&
       (property.nightly_rate || 0) <= filters.maxPrice
     )
@@ -63,7 +63,7 @@ export function PropertySearchPage() {
   const loadProperties = useCallback(async () => {
     setIsSearching(true)
     setError('')
-    
+
     try {
       const { data, error } = await supabase
         .from('properties')
@@ -220,87 +220,6 @@ export function PropertySearchPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 shadow-lg mb-12">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-2xl font-semibold text-gray-900 flex items-center space-x-3">
-              <Search className="h-6 w-6 text-blue-600" />
-              <span>Affinez votre recherche</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-              <div className="xl:col-span-2">
-                <Label htmlFor="location" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>Destination</span>
-                </Label>
-                <Input
-                  id="location"
-                  placeholder="Ville, quartier..."
-                  value={filters.location}
-                  onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="checkIn" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Arrivée</span>
-                </Label>
-                <Input
-                  id="checkIn"
-                  type="date"
-                  value={filters.checkIn}
-                  onChange={(e) => setFilters({ ...filters, checkIn: e.target.value })}
-                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="checkOut" className="text-sm font-medium text-gray-700 mb-2 block">Départ</Label>
-                <Input
-                  id="checkOut"
-                  type="date"
-                  value={filters.checkOut}
-                  onChange={(e) => setFilters({ ...filters, checkOut: e.target.value })}
-                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="guests" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
-                  <Users className="h-4 w-4" />
-                  <span>Voyageurs</span>
-                </Label>
-                <Input
-                  id="guests"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={filters.guests}
-                  onChange={(e) => setFilters({ ...filters, guests: parseInt(e.target.value) || 1 })}
-                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="maxPrice" className="text-sm font-medium text-gray-700 flex items-center space-x-2 mb-2">
-                  <Euro className="h-4 w-4" />
-                  <span>Prix max/nuit</span>
-                </Label>
-                <Input
-                  id="maxPrice"
-                  type="number"
-                  min="0"
-                  value={filters.maxPrice}
-                  onChange={(e) => setFilters({ ...filters, maxPrice: parseInt(e.target.value) || 0 })}
-                  className="rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         <div className="space-y-8">
           <div className="flex justify-between items-center">
@@ -339,7 +258,7 @@ export function PropertySearchPage() {
                       </div>
                     )}
                     <div className="absolute top-4 right-4">
-                      <Badge 
+                      <Badge
                         variant={property.validation_status === 'approved' ? 'default' : 'secondary'}
                         className="bg-white/90 backdrop-blur-sm text-gray-900 border-0 shadow-lg"
                       >

@@ -9,6 +9,7 @@ import { handleAsyncOperation } from '../lib/error-handling'
 import { Calendar, Clock, Star, Euro, MapPin, CheckCircle, AlertCircle, Users, Wrench, Settings } from 'lucide-react'
 import ServiceManagement from '../components/common/ServiceManagement'
 import { UserCalendar } from '../components/calendar/UserCalendar'
+import { InterventionList } from '@/components/interventions'
 
 interface ServiceRequest {
   id: string
@@ -53,7 +54,7 @@ export function ServiceProviderDashboard() {
     pendingRequests: 0
   })
   const [requestsLoading, setRequestsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'planning'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'services' | 'planning' | 'interventions'>('dashboard')
 
   const loadServiceRequests = useCallback(async () => {
     if (!user) return
@@ -144,7 +145,7 @@ export function ServiceProviderDashboard() {
 
     await handleAsyncOperation(
       async () => {
-        const pendingCount = serviceRequests.filter(r => r.status === 'pending').length
+        const pendingCount = serviceRequests.filter(r => r.status === 'pending' || r.status === 'paid').length
         const completedThisMonth = serviceRequests.filter(r =>
           r.status === 'completed' &&
           r.created_at &&
@@ -177,11 +178,13 @@ export function ServiceProviderDashboard() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { variant: 'default' as const, label: 'En attente', icon: Clock },
+      pending: { variant: 'default' as const, label: 'En attente de paiement', icon: Clock },
+      paid: { variant: 'secondary' as const, label: 'Payé - Répondre', icon: CheckCircle },
       accepted: { variant: 'secondary' as const, label: 'Accepté', icon: CheckCircle },
       in_progress: { variant: 'default' as const, label: 'En cours', icon: Wrench },
       completed: { variant: 'outline' as const, label: 'Terminé', icon: CheckCircle },
-      cancelled: { variant: 'destructive' as const, label: 'Annulé', icon: AlertCircle }
+      cancelled: { variant: 'destructive' as const, label: 'Annulé', icon: AlertCircle },
+      rejected: { variant: 'destructive' as const, label: 'Refusé', icon: AlertCircle }
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
@@ -309,6 +312,16 @@ export function ServiceProviderDashboard() {
               <Calendar className="w-4 h-4 mr-2 inline" />
               Planning
             </button>
+            <button
+              onClick={() => setActiveTab('interventions')}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-all duration-200 ${activeTab === 'interventions'
+                  ? 'bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+              <Wrench className="w-4 h-4 mr-2 inline" />
+              Interventions
+            </button>
           </nav>
         </div>
       </div>
@@ -431,9 +444,16 @@ export function ServiceProviderDashboard() {
                     </CardDescription>
                   </div>
                   {stats.pendingRequests > 0 && (
-                    <Badge className="bg-red-100 text-red-700 border-red-200 px-3 py-1">
-                      {stats.pendingRequests} nouvelles
-                    </Badge>
+                    <div className="flex gap-2">
+                      <Badge className="bg-red-100 text-red-700 border-red-200 px-3 py-1">
+                        {stats.pendingRequests} nouvelles
+                      </Badge>
+                      {serviceRequests.filter(r => r.status === 'paid').length > 0 && (
+                        <Badge className="bg-green-100 text-green-700 border-green-200 px-3 py-1">
+                          💰 {serviceRequests.filter(r => r.status === 'paid').length} payées
+                        </Badge>
+                      )}
+                    </div>
                   )}
                 </div>
               </CardHeader>
@@ -459,7 +479,14 @@ export function ServiceProviderDashboard() {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-medium text-gray-900">{request.service.name}</h4>
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-medium text-gray-900">{request.service.name}</h4>
+                                  {request.status === 'paid' && (
+                                    <Badge className="bg-green-100 text-green-700 text-xs px-2 py-1">
+                                      💰 Payé
+                                    </Badge>
+                                  )}
+                                </div>
                                 {getStatusBadge(request.status || 'pending')}
                               </div>
                               <p className="text-sm text-gray-600 mb-1">
@@ -480,7 +507,7 @@ export function ServiceProviderDashboard() {
                               <p className="font-semibold text-xl text-green-600 mb-2">
                                 {request.total_amount.toFixed(2)} €
                               </p>
-                              {request.status === 'pending' && (
+                              {(request.status === 'pending' || request.status === 'paid') && (
                                 <div className="flex gap-2">
                                   <Button
                                     size="sm"
@@ -493,7 +520,7 @@ export function ServiceProviderDashboard() {
                                     size="sm"
                                     variant="outline"
                                     className="rounded-lg border-red-200 text-red-600 hover:bg-red-50 px-3 py-1 text-xs"
-                                    onClick={() => updateRequestStatus(request.id, 'cancelled')}
+                                    onClick={() => updateRequestStatus(request.id, 'rejected')}
                                   >
                                     Refuser
                                   </Button>
@@ -535,6 +562,13 @@ export function ServiceProviderDashboard() {
               // Refresh callback if needed for service provider specific data
               console.log('Calendar refreshed for service provider')
             }}
+          />
+        )}
+
+        {activeTab === 'interventions' && (
+          <InterventionList 
+            userRole="service_provider" 
+            userId={user!.id}
           />
         )}
       </main>

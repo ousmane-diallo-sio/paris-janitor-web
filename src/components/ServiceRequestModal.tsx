@@ -3,11 +3,14 @@ import { X, CreditCard } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card } from '../components/ui/card'
-import { Select } from '../components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
 import { Label } from '../components/ui/label'
+import { Spinner } from '../components/ui/spinner'
 import { ServicePricingCalculator } from '../services/pricingService'
 import { db } from '../lib/database'
 import { useAuthStore } from '../stores/auth'
+import { toast } from 'sonner'
+import { ServicePayment } from './payment/ServicePayment'
 import { 
   SERVICE_CATEGORY_CONFIG,
   type ServiceWithProvider,
@@ -44,6 +47,9 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+  const [showPayment, setShowPayment] = useState(false)
+  const [createdRequest, setCreatedRequest] = useState<{ id: string } | null>(null)
   
   const [form, setForm] = useState<BookingForm>({
     propertyId: '',
@@ -60,16 +66,18 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
     
     try {
       setLoading(true)
-      const userProperties = await db.properties.getByOwnerId(user.id)
-      setProperties(userProperties)
+
+      const bookedProperties = await db.properties.getBookedPropertiesByUser(user.id)
+      setProperties(bookedProperties)
       
-      // Auto-select first property if only one
-      if (userProperties.length === 1) {
-        setForm(prev => ({ ...prev, propertyId: userProperties[0].id }))
+      if (bookedProperties.length === 1) {
+        setForm(prev => ({ ...prev, propertyId: bookedProperties[0].id }))
       }
     } catch (err) {
       console.error('Error loading properties:', err)
-      setError('Erreur lors du chargement des propriétés')
+      const errorMessage = 'Erreur lors du chargement des propriétés'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -110,13 +118,16 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
     
     if (!service || !user) return
     
+    setError(null)
+    
     try {
       setSubmitting(true)
-      setError(null)
       
       // Validate form
       if (!form.propertyId || !form.requestedDate || !form.requestedTime) {
-        setError('Veuillez remplir tous les champs obligatoires')
+        const errorMessage = 'Veuillez remplir tous les champs obligatoires'
+        setError(errorMessage)
+        toast.error(errorMessage)
         return
       }
       
@@ -124,7 +135,9 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       const pricing = calculatePricing()
       
       if (!pricing) {
-        setError('Erreur lors du calcul du prix')
+        const errorMessage = 'Erreur lors du calcul du prix'
+        setError(errorMessage)
+        toast.error(errorMessage)
         return
       }
       
@@ -145,10 +158,11 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
       const newRequest = await db.serviceRequests.create(serviceRequest)
       
       if (newRequest) {
-        onSuccess?.()
-        onClose()
+        toast.success(`Demande créée! Procédez maintenant au paiement.`)
+        setCreatedRequest(newRequest)
+        setShowPayment(true)
         
-        // Reset form
+        // Reset form but keep modal open for payment
         setForm({
           propertyId: '',
           requestedDate: '',
@@ -158,13 +172,44 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
           quantity: 1,
           notes: ''
         })
+        setRetryCount(0)
       }
     } catch (err) {
       console.error('Error creating service request:', err)
-      setError('Erreur lors de la création de la demande')
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création de la demande'
+      setError(errorMessage)
+      setRetryCount(prev => prev + 1)
+      toast.error(`Erreur: ${errorMessage}`)
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handlePaymentSuccess = async () => {
+    if (!createdRequest) return
+
+    try {
+      // Update the service request with payment confirmation
+      await db.serviceRequests.update(createdRequest.id, {
+        status: SERVICE_REQUEST_STATUSES.PAID as ServiceRequestStatus
+      })
+
+      toast.success(`Paiement réussi pour ${service?.name}! Le prestataire va examiner votre demande.`)
+      onSuccess?.()
+      onClose()
+      
+      // Reset states
+      setShowPayment(false)
+      setCreatedRequest(null)
+    } catch (err) {
+      console.error('Error updating payment status:', err)
+      toast.error('Erreur lors de la confirmation du paiement')
+    }
+  }
+
+  const handlePaymentError = (error: string) => {
+    toast.error(`Erreur de paiement: ${error}`)
+    setShowPayment(false)
   }
 
   const getCategoryConfig = (category: string) => {
@@ -180,8 +225,33 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   const pricing = calculatePricing()
   const categoryConfig = getCategoryConfig(service.category)
 
+  // Show payment modal if payment flow is active
+  if (showPayment && createdRequest && pricing) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-md w-full">
+          <ServicePayment
+            serviceRequest={{
+              id: createdRequest.id,
+              total_amount: pricing.total,
+              service_name: service.name,
+              requester_name: user?.full_name || 'Client'
+            }}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
+            onClose={() => {
+              setShowPayment(false)
+              setCreatedRequest(null)
+              onClose()
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
@@ -207,8 +277,39 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-              {error}
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Erreur de réservation</h3>
+                  <div className="mt-1 text-sm text-red-700">
+                    {error}
+                    {retryCount > 0 && (
+                      <span className="block mt-1 text-xs">
+                        Tentative {retryCount} sur 3
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setError(null)}
+                      className="text-sm text-red-600 hover:text-red-500 underline"
+                    >
+                      Réessayer
+                    </button>
+                    {retryCount >= 3 && (
+                      <span className="ml-3 text-xs text-red-500">
+                        Nombre maximum de tentatives atteint. Veuillez contacter le support si le problème persiste.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -223,15 +324,22 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             ) : (
               <Select
                 value={form.propertyId}
-                onValueChange={(value) => setForm(prev => ({ ...prev, propertyId: value }))}
+                onValueChange={(value) => {
+                  setForm(prev => ({ ...prev, propertyId: value }))
+                  if (error) setError(null)
+                }}
                 required
               >
-                <option value="">Sélectionner une propriété</option>
-                {properties.map(property => (
-                  <option key={property.id} value={property.id}>
-                    {property.title} - {property.address}
-                  </option>
-                ))}
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une propriété" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map(property => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.title} - {property.address}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             )}
           </div>
@@ -243,7 +351,10 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                 type="date"
                 id="date"
                 value={form.requestedDate}
-                onChange={(e) => setForm(prev => ({ ...prev, requestedDate: e.target.value }))}
+                onChange={(e) => {
+                  setForm(prev => ({ ...prev, requestedDate: e.target.value }))
+                  if (error) setError(null)
+                }}
                 min={new Date().toISOString().split('T')[0]}
                 required
               />
@@ -254,7 +365,10 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                 type="time"
                 id="time"
                 value={form.requestedTime}
-                onChange={(e) => setForm(prev => ({ ...prev, requestedTime: e.target.value }))}
+                onChange={(e) => {
+                  setForm(prev => ({ ...prev, requestedTime: e.target.value }))
+                  if (error) setError(null)
+                }}
                 required
               />
             </div>
@@ -359,8 +473,17 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
               disabled={submitting || properties.length === 0}
               className="flex-1 flex items-center gap-2"
             >
-              <CreditCard className="w-4 h-4" />
-              {submitting ? 'Création...' : 'Confirmer la réservation'}
+              {submitting ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" />
+                  Création en cours...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Procéder au paiement
+                </>
+              )}
             </Button>
           </div>
         </form>

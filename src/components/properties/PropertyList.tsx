@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { db } from '@/lib/database'
 import { notify, logError } from '@/lib/error-handling'
 import type { Property } from '@/types/database'
 
@@ -105,6 +106,24 @@ function ImageCarousel({ images, alt }: { images: string[], alt: string }) {
 export function PropertyList({ properties, onEdit, onManageCalendar, onRefresh }: PropertyListProps) {
   const [deletingProperty, setDeletingProperty] = useState<Property | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [propertyRatings, setPropertyRatings] = useState<Record<string, { averageRating: number, reviewCount: number }>>({})
+
+  // Fetch ratings when properties change
+  useEffect(() => {
+    const fetchRatings = async () => {
+      if (properties.length === 0) return
+      
+      try {
+        const propertyIds = properties.map(p => p.id)
+        const ratings = await db.reviews.getPropertyRatings(propertyIds)
+        setPropertyRatings(ratings)
+      } catch (error) {
+        console.error('Error fetching property ratings:', error)
+      }
+    }
+
+    fetchRatings()
+  }, [properties])
 
   const handleDelete = useCallback(async (id: string) => {
     if (!id || isDeleting) return;
@@ -184,10 +203,22 @@ export function PropertyList({ properties, onEdit, onManageCalendar, onRefresh }
                 <h3 className="font-semibold text-gray-900 text-lg line-clamp-2 leading-tight">
                   {property.title}
                 </h3>
-                <div className="flex items-center ml-2 text-sm">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="ml-1 font-medium">4.8</span>
-                </div>
+                {propertyRatings[property.id] ? (
+                  <div className="flex items-center ml-2 text-sm">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="ml-1 font-medium">
+                      {propertyRatings[property.id].averageRating}
+                    </span>
+                    <span className="ml-1 text-gray-500 text-xs">
+                      ({propertyRatings[property.id].reviewCount})
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center ml-2 text-sm text-gray-400">
+                    <Star className="h-4 w-4" />
+                    <span className="ml-1 font-medium">Nouveau</span>
+                  </div>
+                )}
               </div>
 
               <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">

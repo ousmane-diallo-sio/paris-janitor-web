@@ -6,6 +6,7 @@ import { StorageImage } from '@/components/ui/storage-image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BookingList } from '@/components/BookingList'
+import ServiceRequestsList from '@/components/ServiceRequestsList'
 import { supabase } from '../lib/supabase'
 import { handleAsyncOperation } from '../lib/error-handling'
 
@@ -194,12 +195,15 @@ export function TravelerDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" id="bookings-section">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="properties" className="flex items-center gap-2">
               🏠 Logements disponibles
             </TabsTrigger>
             <TabsTrigger value="bookings" className="flex items-center gap-2">
               📅 Mes réservations
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2">
+              🛎️ Mes services
             </TabsTrigger>
           </TabsList>
           
@@ -299,6 +303,14 @@ export function TravelerDashboard() {
           
           <TabsContent value="bookings">
             <BookingList />
+          </TabsContent>
+          
+          <TabsContent value="services">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Mes services réservés</h2>
+              <p className="text-gray-600">Gérez vos demandes de services supplémentaires</p>
+            </div>
+            <ServiceRequestsList />
           </TabsContent>
         </Tabs>
       </main>

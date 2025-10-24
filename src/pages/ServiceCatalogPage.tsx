@@ -247,7 +247,7 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+              {/* <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Trier par</h3>
                 <Select
                   value={sortBy}
@@ -257,7 +257,7 @@ export const ServiceCatalogPage: React.FC<ServiceCatalogPageProps> = ({
                   <option value="price">Prix (croissant)</option>
                   <option value="rating">Note (décroissant)</option>
                 </Select>
-              </div>
+              </div> */}
 
               <div className="bg-gray-50 rounded-2xl p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
