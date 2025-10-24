@@ -170,7 +170,6 @@ export function ProfilePage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Email (Read-only) */}
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center space-x-2">
                       <Mail className="h-4 w-4" />
@@ -187,7 +186,6 @@ export function ProfilePage() {
                     </p>
                   </div>
 
-                  {/* Full Name */}
                   <div className="space-y-2">
                     <Label htmlFor="full_name">Nom complet</Label>
                     <Input
@@ -200,7 +198,6 @@ export function ProfilePage() {
                     )}
                   </div>
 
-                  {/* Phone */}
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="flex items-center space-x-2">
                       <Phone className="h-4 w-4" />
@@ -213,7 +210,6 @@ export function ProfilePage() {
                     />
                   </div>
 
-                  {/* Role */}
                   <div className="space-y-2">
                     <Label htmlFor="role" className="flex items-center space-x-2">
                       <Shield className="h-4 w-4" />
@@ -237,7 +233,6 @@ export function ProfilePage() {
                     </p>
                   </div>
 
-                  {/* Messages */}
                   {success && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                       <p className="text-green-700 text-sm">{success}</p>
@@ -250,7 +245,6 @@ export function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Submit Button */}
                   <Button
                     type="submit"
                     disabled={isSubmitting}

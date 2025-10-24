@@ -19,17 +19,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   signIn: async (email: string, password: string) => {
-    try {
-      console.debug('Signing in:', email)
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      console.debug('Sign in response error:', error)
-      if (error) throw error
-    } catch (error) {
-      console.error('Sign in error:', error)
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error) {
       throw error
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    const { data: session } = await supabase.auth.getSession()
+    if (session.session?.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.session.user.id)
+        .single()
+      
+      if (profileError) {
+        throw profileError
+      }
     }
   },
 
@@ -79,39 +89,58 @@ export const useAuthStore = create<AuthState>((set) => ({
           
           if (error) {
             console.error('Error fetching profile during init:', error)
-            set({ user: null, loading: false })
+            
+            if (error.code === '42501' || 
+                (error.message && error.message.includes('ACCOUNT_LOCKED'))) {
+              await supabase.auth.signOut()
+              set({ user: null, session: null, loading: false })
+              throw error
+            } else {
+              set({ user: null, loading: false })
+            }
           } else {
-            console.debug('Profile loaded during init:', data)
             set({ user: data, loading: false })
           }
         } catch (error) {
           console.error('Error during profile fetch:', error)
           set({ user: null, loading: false })
+          throw error
         }
       } else {
         set({ user: null, loading: false })
       }
     })
 
-    supabase.auth.onAuthStateChange((event, session) => {
-      console.debug('Auth state change:', event, session?.user?.email)
+    supabase.auth.onAuthStateChange((_, session) => {
       set({ session })
       
       if (session?.user) {
-        // Use setTimeout to avoid deadlock with async Supabase calls
         setTimeout(async () => {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-          
-          if (error) {
-            console.error('Error fetching profile on auth change:', error)
-            set({ user: null })
-          } else {
-            console.debug('Profile loaded on auth change:', data)
-            set({ user: data })
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single()
+            
+            if (error) {
+              console.error('Error fetching profile on auth change:', error)
+              
+              if (error.code === '42501' || 
+                  (error.message && error.message.includes('ACCOUNT_LOCKED'))) {
+                await supabase.auth.signOut()
+                set({ user: null, session: null })
+                throw error
+              } else {
+                set({ user: null })
+              }
+            } else {
+              set({ user: data })
+            }
+          } catch (error) {
+            console.error('Profile fetch error:', error)
+            set({ user: null, session: null })
+            throw error
           }
         }, 0)
       } else {

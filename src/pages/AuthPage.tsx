@@ -14,6 +14,14 @@ function getErrorMessage(error: unknown): string {
   if (typeof error === 'string') return error
   const message = error instanceof Error ? error.message : ''
   const errorString = String(error).toLowerCase()
+
+  if (typeof error === 'object' && error !== null && (
+    ('code' in error && String((error as { code: unknown }).code) === '42501') ||
+    ('message' in error && String((error as { message: unknown }).message).includes('ACCOUNT_LOCKED'))
+  )) {
+    return '🔒 Votre compte est temporairement verrouillé. Veuillez contacter l\'administration.'
+  }
+
   if (message.includes('Invalid login credentials') ||
     message.includes('Invalid email or password') ||
     errorString.includes('invalid_grant') ||
@@ -83,7 +91,7 @@ export function AuthPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [selectedDevUserType, setSelectedDevUserType] = useState<'property_owner' | 'traveler' | 'service_provider'>('property_owner')
   const isDevelopment = import.meta.env.DEV
-  
+
   useEffect(() => {
     if (user && isSubmitting) {
       console.debug('AuthPage: User authenticated successfully, updating UI')
@@ -99,8 +107,8 @@ export function AuthPage() {
     if (isSubmitting && isLogin) {
       const timeout = setTimeout(() => {
         console.warn('AuthPage: Login timeout - resetting isSubmitting state')
-        setIsSubmitting(false)
-        if (!error) {
+        if (isSubmitting && !error) {
+          setIsSubmitting(false)
           setError('⏱️ Délai d\'attente dépassé - La connexion prend trop de temps')
         }
       }, 30000)
@@ -111,9 +119,9 @@ export function AuthPage() {
 
   const fillDevCredentials = useCallback((userType?: 'property_owner' | 'traveler' | 'service_provider') => {
     const devUserType = userType || selectedDevUserType
-    const devUser = envConfig.dev[devUserType === 'property_owner' ? 'propertyOwner' : 
-                                    devUserType === 'traveler' ? 'traveler' : 'serviceProvider']
-    
+    const devUser = envConfig.dev[devUserType === 'property_owner' ? 'propertyOwner' :
+      devUserType === 'traveler' ? 'traveler' : 'serviceProvider']
+
     if (isLogin) {
       setEmail(devUser.email)
       setPassword(devUser.password)
@@ -138,7 +146,7 @@ export function AuthPage() {
     setError('')
     setSuccessMessage('')
     setIsSubmitting(true)
-    
+
     if (!email.trim()) {
       setError('L\'email est requis')
       setIsSubmitting(false)
@@ -161,7 +169,7 @@ export function AuthPage() {
         return
       }
     }
-    
+
     try {
       if (isLogin) {
         console.debug('AuthPage: Starting login process')
@@ -233,103 +241,102 @@ export function AuthPage() {
               <span>Retour</span>
             </Button>
           </div>
-      {isDevelopment && (
-        <div className="w-1/4 fixed bottom-16 left-2 z-50 space-y-2">
-          <div className="flex space-x-2">
-            <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-2 py-1 rounded-md text-xs font-medium">
-              🔧 DEV MODE
-            </div>
-            <div className={`px-2 py-1 rounded-md text-xs font-medium ${navigator.onLine
-              ? 'bg-green-100 border border-green-300 text-green-800'
-              : 'bg-red-100 border border-red-300 text-red-800'
-              }`}>
-              {navigator.onLine ? '🌐 En ligne' : '❌ Hors ligne'}
-            </div>
-            {error && (
-              <div className="bg-red-100 border border-red-300 text-red-800 px-2 py-1 rounded-md text-xs font-medium">
-                🚨 Error: {error.slice(0, 30)}...
-              </div>
-            )}
-            <div className='flex-1'></div>
-          </div>
-          
-          {/* Dev User Type Selector & Fill Buttons */}
-          <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm max-w-md">
-            <div className="text-xs font-medium text-gray-700 mb-2">🧪 Dev Credentials</div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <Select 
-                  value={selectedDevUserType} 
-                  onValueChange={(value: 'property_owner' | 'traveler' | 'service_provider') => setSelectedDevUserType(value)}
-                >
-                  <SelectTrigger className="h-7 text-xs flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="z-[60]">
-                    <SelectItem value="property_owner">🏠 Propriétaire</SelectItem>
-                    <SelectItem value="traveler">✈️ Voyageur</SelectItem>
-                    <SelectItem value="service_provider">🔧 Prestataire</SelectItem>
-                  </SelectContent>
-                </Select>
+          {isDevelopment && (
+            <div className="w-1/4 fixed bottom-16 left-2 z-50 space-y-2">
+              <div className="flex space-x-2">
+                <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-2 py-1 rounded-md text-xs font-medium">
+                  🔧 DEV MODE
+                </div>
+                <div className={`px-2 py-1 rounded-md text-xs font-medium ${navigator.onLine
+                  ? 'bg-green-100 border border-green-300 text-green-800'
+                  : 'bg-red-100 border border-red-300 text-red-800'
+                  }`}>
+                  {navigator.onLine ? '🌐 En ligne' : '❌ Hors ligne'}
+                </div>
+                {error && (
+                  <div className="bg-red-100 border border-red-300 text-red-800 px-2 py-1 rounded-md text-xs font-medium">
+                    🚨 Error: {error.slice(0, 30)}...
+                  </div>
+                )}
+                <div className='flex-1'></div>
               </div>
 
-              <div className="flex space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fillDevCredentials(selectedDevUserType)}
-                  className="text-xs bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 flex-1"
-                >
-                  {selectedDevUserType === 'property_owner' ? '🏠' : 
-                   selectedDevUserType === 'traveler' ? '✈️' : '🔧'} 
-                  Fill {selectedDevUserType === 'property_owner' ? 'Owner' : 
+              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm max-w-md">
+                <div className="text-xs font-medium text-gray-700 mb-2">🧪 Dev Credentials</div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Select
+                      value={selectedDevUserType}
+                      onValueChange={(value: 'property_owner' | 'traveler' | 'service_provider') => setSelectedDevUserType(value)}
+                    >
+                      <SelectTrigger className="h-7 text-xs flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="z-[60]">
+                        <SelectItem value="property_owner">🏠 Propriétaire</SelectItem>
+                        <SelectItem value="traveler">✈️ Voyageur</SelectItem>
+                        <SelectItem value="service_provider">🔧 Prestataire</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fillDevCredentials(selectedDevUserType)}
+                      className="text-xs bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100 flex-1"
+                    >
+                      {selectedDevUserType === 'property_owner' ? '🏠' :
+                        selectedDevUserType === 'traveler' ? '✈️' : '🔧'}
+                      Fill {selectedDevUserType === 'property_owner' ? 'Owner' :
                         selectedDevUserType === 'traveler' ? 'Traveler' : 'Provider'}
-                </Button>
-                
-                <div className="flex space-x-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fillDevCredentials('property_owner')}
-                    className="text-xs bg-green-50 border-green-200 text-green-800 hover:bg-green-100 px-2"
-                    title="Fill Property Owner"
-                  >
-                    🏠
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fillDevCredentials('traveler')}
-                    className="text-xs bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 px-2"
-                    title="Fill Traveler"
-                  >
-                    ✈️
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fillDevCredentials('service_provider')}
-                    className="text-xs bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 px-2"
-                    title="Fill Service Provider"
-                  >
-                    🔧
-                  </Button>
+                    </Button>
+
+                    <div className="flex space-x-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fillDevCredentials('property_owner')}
+                        className="text-xs bg-green-50 border-green-200 text-green-800 hover:bg-green-100 px-2"
+                        title="Fill Property Owner"
+                      >
+                        🏠
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fillDevCredentials('traveler')}
+                        className="text-xs bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100 px-2"
+                        title="Fill Traveler"
+                      >
+                        ✈️
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fillDevCredentials('service_provider')}
+                        className="text-xs bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 px-2"
+                        title="Fill Service Provider"
+                      >
+                        🔧
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-500">
+                    Email: {envConfig.dev[selectedDevUserType === 'property_owner' ? 'propertyOwner' :
+                      selectedDevUserType === 'traveler' ? 'traveler' : 'serviceProvider'].email}
+                  </div>
                 </div>
               </div>
-              
-              <div className="text-xs text-gray-500">
-                Email: {envConfig.dev[selectedDevUserType === 'property_owner' ? 'propertyOwner' : 
-                                     selectedDevUserType === 'traveler' ? 'traveler' : 'serviceProvider'].email}
-              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
           <div className="max-w-md w-full space-y-8">
             <div className="text-center">
               <h2 className="mt-6 text-4xl font-bold text-gray-900">
@@ -447,77 +454,77 @@ export function AuthPage() {
                       </>
                     )}
 
-                  {successMessage && (
-                    <div className="bg-green-50/50 border border-green-200 rounded-xl p-4 flex items-start space-x-3">
-                      <svg className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-green-700 font-medium">{successMessage}</span>
-                    </div>
-                  )}
-
-                  {error && (
-                    <div className={`border rounded-xl p-4 flex items-start space-x-3 ${error.includes('Échec de connexion') || error.includes('Impossible de se connecter') || error.includes('Délai d\'attente')
-                      ? 'bg-red-100/80 border-red-300 shadow-lg'
-                      : 'bg-red-50/80 border-red-200'
-                      }`}>
-                      <div className="flex-shrink-0">
-                        {error.includes('Échec de connexion') || error.includes('Impossible de se connecter') ? (
-                          <div className="w-5 h-5 text-red-600 animate-pulse">🔌</div>
-                        ) : error.includes('Délai d\'attente') ? (
-                          <div className="w-5 h-5 text-red-600">⏱️</div>
-                        ) : (
-                          <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        )}
-                      </div>
-                  <div className="flex-1">
-                    <span className="text-red-700 text-sm leading-relaxed">{error}</span>
-                    {(error.includes('Échec de connexion') || error.includes('Impossible de se connecter')) && (
-                      <div className="mt-3 flex items-center space-x-3">
-                        <div className="text-xs text-red-600">
-                          💡 Astuces: Vérifiez votre WiFi, désactivez le VPN si activé
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setError('')
-                            const form = document.querySelector('form')
-                            if (form) {
-                              const submitEvent = new Event('submit', {
-                                bubbles: true,
-                                cancelable: true
-                              })
-                              form.dispatchEvent(submitEvent)
-                            }
-                          }}
-                          className="text-xs h-6 px-2 border-red-300 text-red-700 hover:bg-red-50"
-                        >
-                          🔄 Réessayer
-                        </Button>
+                    {successMessage && (
+                      <div className="bg-green-50/50 border border-green-200 rounded-xl p-4 flex items-start space-x-3">
+                        <svg className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-green-700 font-medium">{successMessage}</span>
                       </div>
                     )}
-                  </div>
-                </div>
-              )}
+
+                    {error && (
+                      <div className={`border rounded-xl p-4 flex items-start space-x-3 ${error.includes('Échec de connexion') || error.includes('Impossible de se connecter') || error.includes('Délai d\'attente')
+                        ? 'bg-red-100/80 border-red-300 shadow-lg'
+                        : 'bg-red-50/80 border-red-200'
+                        }`}>
+                        <div className="flex-shrink-0">
+                          {error.includes('Échec de connexion') || error.includes('Impossible de se connecter') ? (
+                            <div className="w-5 h-5 text-red-600 animate-pulse">🔌</div>
+                          ) : error.includes('Délai d\'attente') ? (
+                            <div className="w-5 h-5 text-red-600">⏱️</div>
+                          ) : (
+                            <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <span className="text-red-700 text-sm leading-relaxed">{error}</span>
+                          {(error.includes('Échec de connexion') || error.includes('Impossible de se connecter')) && (
+                            <div className="mt-3 flex items-center space-x-3">
+                              <div className="text-xs text-red-600">
+                                💡 Astuces: Vérifiez votre WiFi, désactivez le VPN si activé
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setError('')
+                                  const form = document.querySelector('form')
+                                  if (form) {
+                                    const submitEvent = new Event('submit', {
+                                      bubbles: true,
+                                      cancelable: true
+                                    })
+                                    form.dispatchEvent(submitEvent)
+                                  }
+                                }}
+                                className="text-xs h-6 px-2 border-red-300 text-red-700 hover:bg-red-50"
+                              >
+                                🔄 Réessayer
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     <Button
                       type="submit"
                       className="w-full bg-gradient-to-r from-[#62cff4] to-[#2c67f2] text-white font-semibold py-4 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                       disabled={isSubmitting}
                     >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>{isLogin ? 'Connexion...' : 'Inscription...'}</span>
-                      </div>
-                    ) : (
-                      <span>{isLogin ? '🔑 Se connecter' : '🚀 S\'inscrire'}</span>
-                    )}
-                  </Button>
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>{isLogin ? 'Connexion...' : 'Inscription...'}</span>
+                        </div>
+                      ) : (
+                        <span>{isLogin ? '🔑 Se connecter' : '🚀 S\'inscrire'}</span>
+                      )}
+                    </Button>
                   </div>
                 </form>
 

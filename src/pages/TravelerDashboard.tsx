@@ -121,7 +121,7 @@ export function TravelerDashboard() {
           </header>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-            <div className="grid md:grid-cols-3 gap-6 mt-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
               <Card className="bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/15 transition-all cursor-pointer">
                 <CardHeader className="pb-3">
                   <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-3">

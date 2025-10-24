@@ -111,7 +111,6 @@ export function AvailabilityDialog({
             Propriété: <strong>{propertyTitle}</strong>
           </div>
 
-          {/* Action Selection */}
           <div className="space-y-2">
             <Label htmlFor="action">Action</Label>
             <Select value={action} onValueChange={(value: 'block' | 'unblock') => setAction(value)}>
@@ -135,7 +134,6 @@ export function AvailabilityDialog({
             </Select>
           </div>
 
-          {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start-date">Date de début</Label>
@@ -159,7 +157,6 @@ export function AvailabilityDialog({
             </div>
           </div>
 
-          {/* Reason (only for blocking) */}
           {action === 'block' && (
             <div className="space-y-2">
               <Label htmlFor="reason">Raison du blocage</Label>
@@ -187,7 +184,6 @@ export function AvailabilityDialog({
             </div>
           )}
 
-          {/* Preview */}
           {startDate && endDate && (
             <div className="p-3 bg-gray-50 rounded-lg text-sm">
               <div className="font-medium mb-1">Aperçu:</div>

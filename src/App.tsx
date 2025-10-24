@@ -1,6 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import { PropertyOwnerDashboard } from '@/pages/PropertyOwnerDashboard'
@@ -17,16 +15,8 @@ import PrivacyPage from '@/pages/PrivacyPage'
 import { Toaster } from '@/components/ui/sonner'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { NetworkStatusIndicator } from '@/components/NetworkStatus'
+import { FloatingChatButton } from '@/components/chat/FloatingChatButton'
 import Footer from '@/components/common/Footer'
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 5 * 60 * 1000,
-    },
-  },
-})
 
 function App() {
   const { initialize, loading } = useAuthStore()
@@ -48,32 +38,29 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/search" element={<PropertySearchPage />} />
-              <Route path="/property/:id" element={<PropertyDetailsPage />} />
-              <Route path="/services" element={<ServiceCatalogPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/search" element={<PropertySearchPage />} />
+            <Route path="/property/:id" element={<PropertyDetailsPage />} />
+            <Route path="/services" element={<ServiceCatalogPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
-              {/* Protected routes - always rendered but with internal auth checks */}
-              <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />
-              <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
-              <Route path="/dashboard/service-provider" element={<ServiceProviderDashboard />} />
+            <Route path="/dashboard/property-owner" element={<PropertyOwnerDashboard />} />
+            <Route path="/dashboard/traveler" element={<TravelerDashboard />} />
+            <Route path="/dashboard/service-provider" element={<ServiceProviderDashboard />} />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <Footer />
-          </div>
-        </Router>
-        <ReactQueryDevtools initialIsOpen={false} />
-        <Toaster />
-        <NetworkStatusIndicator />
-      </QueryClientProvider>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+          <Footer />
+          <FloatingChatButton />
+        </div>
+      </Router>
+      <Toaster />
+      <NetworkStatusIndicator />
     </ErrorBoundary>
   )
 }

@@ -50,7 +50,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         padding: '20px'
       }}
     >
-      {/* PDF-specific CSS for page breaks */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @media print {
@@ -85,7 +84,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         `
       }} />
 
-      {/* Header Section - avoid page break */}
       <div className="page-break-avoid" style={{ marginBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
           <div>
@@ -103,7 +101,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         </div>
       </div>
 
-      {/* Client Information - keep together */}
       <div className="pdf-section page-break-avoid">
         <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', margin: '0 0 16px 0' }}>
           Informations client
@@ -123,7 +120,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         </div>
       </div>
 
-      {/* Property Information - keep together */}
       {property && (
         <div className="pdf-section page-break-avoid">
           <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', margin: '0 0 16px 0' }}>
@@ -140,7 +136,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         </div>
       )}
 
-      {/* Services Tables - split across pages if needed */}
       <div className="pdf-section">
         <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', margin: '0 0 16px 0' }} className="page-break-avoid">
           Détail des services
@@ -182,7 +177,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         ))}
       </div>
 
-      {/* Totals Section - keep together */}
       <div className="pdf-section page-break-avoid">
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <div style={{ width: '320px' }}>
@@ -208,7 +202,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         </div>
       </div>
 
-      {/* Notes Section - keep together if possible */}
       {quote.notes && (
         <div className="pdf-section page-break-avoid">
           <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px', margin: '0 0 16px 0' }}>
@@ -220,7 +213,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         </div>
       )}
 
-      {/* Terms and Conditions - new page if needed */}
       <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '32px' }} className="page-break-avoid">
         <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px', margin: '0 0 16px 0' }}>Conditions générales</h3>
         <div style={{ fontSize: '14px', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -232,7 +224,6 @@ export function QuoteTemplate({ quote, property }: QuoteTemplateProps) {
         </div>
       </div>
 
-      {/* Footer - keep at bottom */}
       <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #e5e7eb' }} className="page-break-avoid">
         <div style={{ textAlign: 'center', fontSize: '14px', color: '#9ca3af' }}>
           <p style={{ margin: '0' }}>Paris Janitor - Conciergerie immobilière</p>

@@ -212,7 +212,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             </div>
           )}
 
-          {/* Property Selection */}
           <div className="space-y-2">
             <Label htmlFor="property">Propriété *</Label>
             {loading ? (
@@ -237,7 +236,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             )}
           </div>
 
-          {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">Date *</Label>
@@ -262,9 +260,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             </div>
           </div>
 
-          {/* Service-specific fields */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Quantity */}
             <div className="space-y-2">
               <Label htmlFor="quantity">Quantité</Label>
               <Input
@@ -276,7 +272,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
               />
             </div>
 
-            {/* Duration (if not fixed) */}
             {service.price_type === 'hourly' && (
               <div className="space-y-2">
                 <Label htmlFor="duration">Durée (minutes)</Label>
@@ -291,7 +286,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
               </div>
             )}
 
-            {/* Distance (for distance-based pricing) */}
             {service.price_type === 'distance' && (
               <div className="space-y-2">
                 <Label htmlFor="distance">Distance (km)</Label>
@@ -307,7 +301,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             )}
           </div>
 
-          {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes">Notes (optionnel)</Label>
             <textarea
@@ -320,7 +313,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             />
           </div>
 
-          {/* Pricing Summary */}
           {pricing && (
             <Card className="p-4 bg-gray-50">
               <h3 className="font-semibold mb-3">Récapitulatif des prix</h3>
@@ -353,7 +345,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             </Card>
           )}
 
-          {/* Actions */}
           <div className="flex gap-3 pt-4">
             <Button
               type="button"

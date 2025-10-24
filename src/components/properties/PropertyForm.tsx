@@ -225,7 +225,6 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Informations générales</h3>
 
@@ -257,7 +256,6 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
               </div>
             </div>
 
-            {/* Location */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Localisation</h3>
 
@@ -303,7 +301,6 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
               </div>
             </div>
 
-            {/* Property Details */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Détails de la propriété</h3>
 
@@ -372,7 +369,6 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
               </div>
             </div>
 
-            {/* Images */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Photos de la propriété</h3>
               <ImageUpload
